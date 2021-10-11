@@ -1,0 +1,33 @@
+{
+  "name": "vue3-rsocket",
+  "version": "1.0.0",
+  "description": "Vue3 library for rsocket-js https://github.com/rsocket/rsocket-js",
+  "main": "dist/vue3-rsocket.cjs.js",
+  "module": "dist/vue3-rsocket.esm.js",
+  "browser": "dist/vue3-rsocket.umd.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexiles/vue3-rsocket"
+  },
+  "author": "Jakob Huber <jakob.huber@nexiles.com>",
+  "license": "UNLICENCED",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^11.0.1",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^8.1.0",
+    "prettier": "2.4.1",
+    "rollup": "^2.58.0"
+  }
+}
