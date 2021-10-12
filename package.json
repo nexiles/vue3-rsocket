@@ -10,7 +10,7 @@
     "url": "git+https://github.com/nexiles/vue3-rsocket"
   },
   "author": "Jakob Huber <jakob.huber@nexiles.com>",
-  "license": "UNLICENCED",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "rollup -c",
