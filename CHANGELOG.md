@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.0.0 -- unreleased
+## 0.1.0 -- unreleased
 
 - docs: Add CHANGELOG
 - docs: Set licence to MIT
