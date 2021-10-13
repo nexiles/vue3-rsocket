@@ -1,0 +1,21 @@
+version: 2
+
+updates:
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "08:00"
+      timezone: "Europe/Berlin"
+    target-branch: "develop"
+    open-pull-requests-limit: 30
+    registries:
+      - "nexiles-nexus-npm-registry"
+      - "fortawesome-npm-registry"
+    labels:
+      - "dependency"
+      - "npm"
+    reviewers:
+      - "s-frei"
+      - "gh7531"
