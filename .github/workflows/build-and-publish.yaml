@@ -1,0 +1,37 @@
+# Publish new commits to npm. See https://github.com/mikeal/merge-release/blob/master/README.md for more info.
+
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-publish:
+      runs-on: ubuntu-20.04
+      if: github.event_name == 'push' && ( github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' )
+
+      strategy:
+        matrix:
+          node-version: [14.x]
+
+      steps:
+        - uses: actions/checkout@master
+
+        - name: Set up Node.js ${{ matrix.node-version }}
+          uses: actions/setup-node@master
+          with:
+            node-version: ${{ matrix.node-version }}
+
+        - name: Install Yarn
+          run: npm install -g yarn
+
+        - name: Install packages
+          run: yarn install --frozen-lockfile
+
+        - name: Publish
+          uses: mikeal/merge-release@v4.3.0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
