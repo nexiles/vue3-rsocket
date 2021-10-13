@@ -11,7 +11,7 @@
   },
   "author": "Jakob Huber <jakob.huber@nexiles.com>",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w"
