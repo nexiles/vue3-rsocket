@@ -10,9 +10,6 @@ updates:
       timezone: "Europe/Berlin"
     target-branch: "develop"
     open-pull-requests-limit: 30
-    registries:
-      - "nexiles-nexus-npm-registry"
-      - "fortawesome-npm-registry"
     labels:
       - "dependency"
       - "npm"
