@@ -52,11 +52,10 @@ export default boot(async ({ app }) => {
     authFn: async () =>
       new Auth(
         authentication.BEARER,
-        await store.dispatch("userStore/fetchToken")
+        token
       ),
 
-    // Enable debug in development builds
-    debug: process.env.NODE_ENV !== "production",
+    debug: true
   });
 
   app.use(rSocket);
@@ -83,7 +82,7 @@ export default boot(async ({ app }) => {
         new User("username", "password")
       ),
 
-    debug: process.env.NODE_ENV !== "production",
+    debug: true
   });
 
   app.use(rSocket);
