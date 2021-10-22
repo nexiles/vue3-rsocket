@@ -10,7 +10,6 @@ on:
 jobs:
   build-and-publish:
       runs-on: ubuntu-20.04
-      if: github.event_name == 'push' && ( github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' )
 
       strategy:
         matrix:
@@ -29,6 +28,9 @@ jobs:
 
         - name: Install packages
           run: yarn install --frozen-lockfile
+
+        - name: Build vue3-rsocket
+          run: yarn build
 
         - name: Publish
           uses: mikeal/merge-release@v4.3.0
