@@ -126,7 +126,7 @@ export default {
 ```
 ## Next up
 
-- [ ] Add dependabot
+- [x] Add dependabot
 - [ ] Add Vue setup example
 - [ ] Add full example project with front and backend
 - [ ] Expose more configuration parameters
