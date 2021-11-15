@@ -20,7 +20,7 @@
     "dist"
   ],
   "dependencies": {
-    "vue": "^3.0.0"
+    "vue": "^3.2.22"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.1",
