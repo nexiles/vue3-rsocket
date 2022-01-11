@@ -11,17 +11,13 @@ jobs:
   build-and-publish:
       runs-on: ubuntu-20.04
 
-      strategy:
-        matrix:
-          node-version: [14.x]
-
       steps:
         - uses: actions/checkout@master
 
         - name: Set up Node.js ${{ matrix.node-version }}
           uses: actions/setup-node@master
           with:
-            node-version: ${{ matrix.node-version }}
+            node-version: 14
 
         - name: Install Yarn
           run: npm install -g yarn
@@ -36,4 +32,5 @@ jobs:
           uses: mikeal/merge-release@v4.3.0
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            NPM_REGISTRY_URL: ${{ secrets.NPM_REGISTRY_URL }}
             NPM_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
