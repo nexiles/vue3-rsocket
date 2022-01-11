@@ -32,5 +32,4 @@ jobs:
           uses: mikeal/merge-release@v4.3.0
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            NPM_REGISTRY_URL: ${{ secrets.NPM_REGISTRY_URL }}
             NPM_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
