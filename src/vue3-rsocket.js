@@ -93,11 +93,10 @@ function _encodeMetaData(auth, route, customMetadata) {
  * @returns {Promise<{install: install}>} Return install function required for Vue
  */
 async function createRSocket({
-                               url = "wss://localhost:7000",
-                               authFn = () => {
-                               },
-                               debug = false,
-                             }) {
+  url = "wss://localhost:7000",
+  authFn = () => {},
+  debug = false,
+}) {
   _url = url;
   _authFn = authFn;
   _debug = debug;
@@ -140,8 +139,7 @@ async function createRSocket({
  * @param {(status) => {}} onStateChange Function executed on a connection state change
  * @returns {Promise<*>} connection
  */
-async function connect(onStateChange = (status) => {
-}) {
+async function connect(onStateChange = (status) => {}) {
   if (_rsConnection) throw new Error(`Already connected to: ${_url}`);
 
   try {

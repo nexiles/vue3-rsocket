@@ -14,5 +14,4 @@ updates:
       - "dependency"
       - "npm"
     reviewers:
-      - "s-frei"
       - "gh7531"
