@@ -22,9 +22,18 @@
  * SOFTWARE.
  */
 
-export class User {
-    constructor(username, password) {
-        this.username = username;
-        this.password = password;
-    }
-}
+// https://prettier.io/docs/en/options.html
+module.exports = {
+    printWidth: 90,
+    tabWidth: 4,
+    useTabs: false,
+    semi: true,
+    singleQuote: false,
+    quoteProps: "as-needed",
+    trailingComma: "es5",
+    bracketSpacing: true,
+    bracketSameLine: true,
+    arrowParens: "always",
+    htmlWhitespaceSensitivity: "ignore",
+    endOfLine: "lf",
+};

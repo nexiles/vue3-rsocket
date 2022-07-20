@@ -24,17 +24,17 @@
 
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import {
-  APPLICATION_JSON,
-  BufferEncoders,
-  encodeBearerAuthMetadata,
-  encodeCompositeMetadata,
-  encodeRoute,
-  encodeSimpleAuthMetadata,
-  JsonSerializer,
-  MESSAGE_RSOCKET_AUTHENTICATION,
-  MESSAGE_RSOCKET_COMPOSITE_METADATA,
-  MESSAGE_RSOCKET_ROUTING,
-  RSocketClient,
+    APPLICATION_JSON,
+    BufferEncoders,
+    encodeBearerAuthMetadata,
+    encodeCompositeMetadata,
+    encodeRoute,
+    encodeSimpleAuthMetadata,
+    JsonSerializer,
+    MESSAGE_RSOCKET_AUTHENTICATION,
+    MESSAGE_RSOCKET_COMPOSITE_METADATA,
+    MESSAGE_RSOCKET_ROUTING,
+    RSocketClient,
 } from "rsocket-core/build";
 import { authentication } from "./auth";
 
@@ -57,32 +57,32 @@ let _vueInstance;
  * @private
  */
 function _encodeMetaData(auth, route, customMetadata) {
-  const metadata = [];
+    const metadata = [];
 
-  if (auth) {
-    if (auth.authType === authentication.BEARER) {
-      metadata.push([
-        MESSAGE_RSOCKET_AUTHENTICATION,
-        encodeBearerAuthMetadata(auth.value),
-      ]);
-    } else if (auth.authType === authentication.BASIC) {
-      const user = auth.value;
-      metadata.push([
-        MESSAGE_RSOCKET_AUTHENTICATION,
-        encodeSimpleAuthMetadata(user.username, user.password),
-      ]);
+    if (auth) {
+        if (auth.authType === authentication.BEARER) {
+            metadata.push([
+                MESSAGE_RSOCKET_AUTHENTICATION,
+                encodeBearerAuthMetadata(auth.value),
+            ]);
+        } else if (auth.authType === authentication.BASIC) {
+            const user = auth.value;
+            metadata.push([
+                MESSAGE_RSOCKET_AUTHENTICATION,
+                encodeSimpleAuthMetadata(user.username, user.password),
+            ]);
+        }
     }
-  }
 
-  if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
+    if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
 
-  if (customMetadata)
-    metadata.push([
-      APPLICATION_JSON,
-      Buffer.from(JsonSerializer.serialize(customMetadata)),
-    ]);
+    if (customMetadata)
+        metadata.push([
+            APPLICATION_JSON,
+            Buffer.from(JsonSerializer.serialize(customMetadata)),
+        ]);
 
-  return encodeCompositeMetadata(metadata);
+    return encodeCompositeMetadata(metadata);
 }
 
 /**
@@ -93,45 +93,45 @@ function _encodeMetaData(auth, route, customMetadata) {
  * @returns {Promise<{install: install}>} Return install function required for Vue
  */
 async function createRSocket({
-  url = "wss://localhost:7000",
-  authFn = () => {},
-  debug = false,
+    url = "wss://localhost:7000",
+    authFn = () => {},
+    debug = false,
 }) {
-  _url = url;
-  _authFn = authFn;
-  _debug = debug;
-  const options = {
-    setup: {
-      // ms btw sending keepalive to server
-      keepAlive: 60000,
-      // ms timeout if no keepalive response
-      lifetime: 180000,
-      // format of `data`
-      dataMimeType: "application/json",
-      // format of `metadata`
-      metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
-      // payload
-      payload: {
-        data: undefined,
-        metadata: _encodeMetaData(await authFn()),
-      },
-    },
-    transport: new RSocketWebSocketClient({ url }, BufferEncoders),
-  };
+    _url = url;
+    _authFn = authFn;
+    _debug = debug;
+    const options = {
+        setup: {
+            // ms btw sending keepalive to server
+            keepAlive: 60000,
+            // ms timeout if no keepalive response
+            lifetime: 180000,
+            // format of `data`
+            dataMimeType: "application/json",
+            // format of `metadata`
+            metadataMimeType: MESSAGE_RSOCKET_COMPOSITE_METADATA.string,
+            // payload
+            payload: {
+                data: undefined,
+                metadata: _encodeMetaData(await authFn()),
+            },
+        },
+        transport: new RSocketWebSocketClient({ url }, BufferEncoders),
+    };
 
-  function install(app) {
-    if (install.installed) return;
-    install.installed = true;
+    function install(app) {
+        if (install.installed) return;
+        install.installed = true;
 
-    app.config.globalProperties.$rs_subscriptions = new Map();
+        app.config.globalProperties.$rs_subscriptions = new Map();
 
-    _vueInstance = app;
-    _rsClient = new RSocketClient(options);
-  }
+        _vueInstance = app;
+        _rsClient = new RSocketClient(options);
+    }
 
-  return {
-    install,
-  };
+    return {
+        install,
+    };
 }
 
 /**
@@ -140,27 +140,27 @@ async function createRSocket({
  * @returns {Promise<*>} connection
  */
 async function connect(onStateChange = (status) => {}) {
-  if (_rsConnection) throw new Error(`Already connected to: ${_url}`);
+    if (_rsConnection) throw new Error(`Already connected to: ${_url}`);
 
-  try {
-    if (_debug) console.log(`Connecting to: ${_url}`);
-    _rsConnection = await _rsClient.connect();
-  } catch (e) {
-    throw new Error("Unable to connect to RSocket server");
-  }
+    try {
+        if (_debug) console.log(`Connecting to: ${_url}`);
+        _rsConnection = await _rsClient.connect();
+    } catch (e) {
+        throw new Error("Unable to connect to RSocket server");
+    }
 
-  try {
-    _rsConnection.connectionStatus().subscribe((status) => {
-      if (_debug) console.log(`RSocket connection status: ${status.kind}`);
-      onStateChange(status);
+    try {
+        _rsConnection.connectionStatus().subscribe((status) => {
+            if (_debug) console.log(`RSocket connection status: ${status.kind}`);
+            onStateChange(status);
 
-      isConnected = status.kind === "CONNECTED";
-    });
-  } catch (e) {
-    throw new Error("Unable to subscribe to connectionStatus");
-  }
+            isConnected = status.kind === "CONNECTED";
+        });
+    } catch (e) {
+        throw new Error("Unable to subscribe to connectionStatus");
+    }
 
-  return _rsConnection;
+    return _rsConnection;
 }
 
 /**
@@ -171,48 +171,47 @@ async function connect(onStateChange = (status) => {}) {
  * @returns {Promise<void>}
  */
 async function subscribe(route, onMessage, customMetadata = {}) {
-  if (!_rsConnection)
-    throw new Error("Could not subscribe. No connection found");
+    if (!_rsConnection) throw new Error("Could not subscribe. No connection found");
 
-  if (!isConnected) throw new Error("Could not subscribe. Not connected");
+    if (!isConnected) throw new Error("Could not subscribe. Not connected");
 
-  if (typeof onMessage !== "function")
-    throw new Error("Invalid parameter. onNext is not a function");
+    if (typeof onMessage !== "function")
+        throw new Error("Invalid parameter. onNext is not a function");
 
-  if (_debug) console.log(`Subscribing to route: ${route}`);
-  await _rsConnection
-    .requestStream({
-      metadata: _encodeMetaData(await _authFn(), route, customMetadata),
-    })
-    .subscribe({
-      onComplete: (socket) => console.log({ socket }),
-      onError: (error) => console.error({ error }),
-      onNext: (value) => {
-        const data = JSON.parse(value.data);
-        const metadata = JSON.parse(value.metadata);
+    if (_debug) console.log(`Subscribing to route: ${route}`);
+    await _rsConnection
+        .requestStream({
+            metadata: _encodeMetaData(await _authFn(), route, customMetadata),
+        })
+        .subscribe({
+            onComplete: (socket) => console.log({ socket }),
+            onError: (error) => console.error({ error }),
+            onNext: (value) => {
+                const data = JSON.parse(value.data);
+                const metadata = JSON.parse(value.metadata);
 
-        if (_debug)
-          console.log(
-            `Receiving message on route "${route}"
+                if (_debug)
+                    console.log(
+                        `Receiving message on route "${route}"
           data: ${JSON.stringify(data)}
           metadata: ${JSON.stringify(metadata)}`
-          );
-        onMessage(data, metadata);
-      },
-      onSubscribe: (sub) => {
-        if (_vueInstance.config.globalProperties.$rs_subscriptions.has(route)) {
-          console.warn(
-            `Multiple subscription for route: ${route}, closing new subscription`
-          );
-          sub.cancel();
-          return;
-        }
+                    );
+                onMessage(data, metadata);
+            },
+            onSubscribe: (sub) => {
+                if (_vueInstance.config.globalProperties.$rs_subscriptions.has(route)) {
+                    console.warn(
+                        `Multiple subscription for route: ${route}, closing new subscription`
+                    );
+                    sub.cancel();
+                    return;
+                }
 
-        if (_debug) console.log(`Add "${route}" to subscribed routes`);
-        _vueInstance.config.globalProperties.$rs_subscriptions.set(route, sub);
-        sub.request(JAVA_MAX_SAFE_INTEGER);
-      },
-    });
+                if (_debug) console.log(`Add "${route}" to subscribed routes`);
+                _vueInstance.config.globalProperties.$rs_subscriptions.set(route, sub);
+                sub.request(JAVA_MAX_SAFE_INTEGER);
+            },
+        });
 }
 
 /**
@@ -220,15 +219,16 @@ async function subscribe(route, onMessage, customMetadata = {}) {
  * @param {string} route Route to unsubscribe from.
  */
 function unsubscribe(route) {
-  if (!_vueInstance.config.globalProperties.$rs_subscriptions?.has(route)) {
-    if (_debug) console.log(`No subscription for route: ${route}`);
-    return;
-  }
+    if (!_vueInstance.config.globalProperties.$rs_subscriptions?.has(route)) {
+        if (_debug) console.log(`No subscription for route: ${route}`);
+        return;
+    }
 
-  if (_debug) console.log(`Canceling subscription to route: ${route}`);
-  _vueInstance.config.globalProperties.$rs_subscriptions.get(route).cancel();
-  if (_debug) console.log(`Remove "${route}" from subscribed routes`);
-  _vueInstance.config.globalProperties.$rs_subscriptions.delete(route);
+    if (_debug) console.log(`Canceling subscription to route: ${route}`);
+    _vueInstance.config.globalProperties.$rs_subscriptions.get(route).cancel();
+
+    if (_debug) console.log(`Remove "${route}" from subscribed routes`);
+    _vueInstance.config.globalProperties.$rs_subscriptions.delete(route);
 }
 
 /**
@@ -236,12 +236,12 @@ function unsubscribe(route) {
  * @returns {{subscribe: ((function(string, Function, Object=): Promise<void>)|*), unsubscribe: unsubscribe, isConnected: boolean, connect: (function(function(status): {}=): *)}}
  */
 function useRSocket() {
-  return {
-    isConnected,
-    connect,
-    subscribe,
-    unsubscribe,
-  };
+    return {
+        isConnected,
+        connect,
+        subscribe,
+        unsubscribe,
+    };
 }
 
 export { createRSocket, useRSocket };
