@@ -36,17 +36,19 @@ import {
     MESSAGE_RSOCKET_ROUTING,
     RSocketClient,
 } from "rsocket-core";
-import { Authentication } from "./auth";
+import { ConnectionStatus, ReactiveSocket } from "rsocket-types";
+import { Auth, Authentication } from "./auth";
+import { Buffer } from "buffer";
 
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
-let isConnected = false;
-var _rsClient;
-var _rsConnection;
-var _url;
-var _authFn;
-var _debug;
-var _vueInstance;
+let rSocketConnectionStatus: RSocketConnectionStatus = undefined;
+let _rsClient: RSocketClient<any, Buffer>;
+let _rsConnection: ReactiveSocket<any, Buffer>;
+let _url;
+let _authFn;
+let _debug;
+let _vueInstance;
 
 /**
  * encode the auth and route metadata as required by the protocol spec
@@ -85,18 +87,16 @@ function _encodeMetaData(auth, route, customMetadata) {
     return encodeCompositeMetadata(metadata);
 }
 
+type authFn = () => Promise<Auth>;
+
 /**
  * Setup the rsocket websocket client connection to the server
  * @param {string} url The URL of the server
- * @param {() => Auth} authFn Function used to generate the Auth-object used to authenticate to the server
+ * @param {() => Promise<Auth>} authFn Function used to generate the Auth-object used to authenticate to the server
  * @param {boolean} debug Enable debug mode
  * @returns {Promise<{install: install}>} Return install function required for Vue
  */
-async function createRSocket({
-    url = "wss://localhost:7000",
-    authFn = () => {},
-    debug = false,
-}) {
+async function createRSocket({ url = "wss://localhost:7000", authFn, debug = false }) {
     _url = url;
     _authFn = authFn;
     _debug = debug;
@@ -116,7 +116,7 @@ async function createRSocket({
                 metadata: _encodeMetaData(await authFn(), undefined, undefined),
             },
         },
-        transport: new RSocketWebSocketClient({ url }, BufferEncoders),
+        transport: new RSocketWebSocketClient({ url, debug }, BufferEncoders),
     };
 
     function install(app) {
@@ -131,12 +131,32 @@ async function createRSocket({
     };
 }
 
+class RSocketConnectionStatus {
+    status: ConnectionStatus;
+    connected: boolean;
+
+    constructor(status) {
+        this.status = status;
+        this.connected = status.kind === "CONNECTED";
+    }
+
+    getKind() {
+        return this.status.kind;
+    }
+
+    isConnected() {
+        return this.connected;
+    }
+}
+
+type onStateChange = (status: RSocketConnectionStatus) => void;
+
 /**
  * Connect to the RSocket server and subscribe to the connection status
- * @param {(status) => {}} onStateChange Function executed on a connection state change
+ * @param {(RSocketConnectionStatus) => {}} onStateChange Function executed when a connection status changes
  * @returns {Promise<*>} connection
  */
-async function connect(onStateChange = (status) => {}) {
+async function connect(onStateChange) {
     if (_rsConnection) throw new Error(`Already connected to: ${_url}`);
 
     try {
@@ -147,12 +167,17 @@ async function connect(onStateChange = (status) => {}) {
     }
 
     try {
-        _rsConnection.connectionStatus().subscribe((status) => {
-            if (_debug) console.log(`RSocket connection status: ${status.kind}`);
-            onStateChange(status);
+        _rsConnection
+            .connectionStatus()
+            .subscribe((connectionStatus: ConnectionStatus) => {
+                rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
+                if (_debug)
+                    console.log(
+                        `RSocket connection status: ${rSocketConnectionStatus.getKind()}`
+                    );
 
-            isConnected = status.kind === "CONNECTED";
-        });
+                onStateChange(rSocketConnectionStatus);
+            });
     } catch (e) {
         throw new Error("Unable to subscribe to connectionStatus");
     }
@@ -170,29 +195,37 @@ async function connect(onStateChange = (status) => {}) {
 async function subscribe(route, onMessage, customMetadata = {}) {
     if (!_rsConnection) throw new Error("Could not subscribe. No connection found");
 
-    if (!isConnected) throw new Error("Could not subscribe. Not connected");
+    if (!rSocketConnectionStatus.isConnected())
+        throw new Error("Could not subscribe. Not connected");
 
     if (typeof onMessage !== "function")
         throw new Error("Invalid parameter. onNext is not a function");
 
     if (_debug) console.log(`Subscribing to route: ${route}`);
-    await _rsConnection
+    _rsConnection
         .requestStream({
             metadata: _encodeMetaData(await _authFn(), route, customMetadata),
         })
         .subscribe({
-            onComplete: (socket) => console.log({ socket }),
-            onError: (error) => console.error({ error }),
+            onComplete: () => {
+                if (_debug) console.log("Subscription completed");
+            },
+            onError: (error) => {
+                console.log({ error });
+            },
             onNext: (value) => {
                 const data = JSON.parse(value.data);
-                const metadata = JSON.parse(value.metadata);
+                const metadata = value.metadata
+                    ? JSON.parse(value.metadata.toString())
+                    : undefined;
 
-                if (_debug)
+                if (_debug) {
+                    const prettyData = JSON.stringify(data);
+                    const prettyMetadata = JSON.stringify(metadata);
                     console.log(
-                        `Receiving message on route "${route}"
-          data: ${JSON.stringify(data)}
-          metadata: ${JSON.stringify(metadata)}`
+                        `Receiving message on route "${route}" data: ${prettyData} metadata: ${prettyMetadata}`
                     );
+                }
                 onMessage(data, metadata);
             },
             onSubscribe: (sub) => {
@@ -234,7 +267,7 @@ function unsubscribe(route) {
  */
 function useRSocket() {
     return {
-        isConnected,
+        rSocketConnectionStatus,
         connect,
         subscribe,
         unsubscribe,
