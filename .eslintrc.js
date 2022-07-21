@@ -23,24 +23,36 @@
  */
 
 module.exports = {
-    "env": {
-        "browser": true,
-        "es2021": true
+    env: {
+        browser: true,
+        commonjs: true,
+        es6: true,
     },
     // Rules order is important, please avoid shuffling them
-    "extends": [
+    extends: [
         // Base ESLint recommended rules
-        'eslint:recommended',
+        "eslint:recommended",
 
         // https://github.com/prettier/eslint-config-prettier#installation
         // usage with Prettier, provided by 'eslint-config-prettier'.
         "prettier",
     ],
-    "parserOptions": {
-        "ecmaVersion": 12,
-        "sourceType": "module"
+    settings: {
+        "import/resolver": {
+            node: {
+                paths: "src",
+                extensions: [".js", ".jsx", ".ts", ".tsx"],
+            },
+        },
     },
-    "rules": {
+    parserOptions: {
+        ecmaVersion: 12,
+        sourceType: "module",
+    },
+    rules: {
         "object-curly-spacing": ["error", "always"],
+        "no-undef": "warn",
+        "no-unused-vars": "warn",
+        "no-debugger": "warn",
     },
 };

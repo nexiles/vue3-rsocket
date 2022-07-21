@@ -22,8 +22,12 @@
  * SOFTWARE.
  */
 
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import { Auth, authentication } from "./auth";
-import { User } from "./user";
+export class User {
+    private username: string;
+    private password: string;
 
-export { createRSocket, useRSocket, Auth, authentication, User };
+    constructor(username: string, password: string) {
+        this.username = username;
+        this.password = password;
+    }
+}

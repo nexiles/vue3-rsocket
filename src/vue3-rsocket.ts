@@ -35,18 +35,18 @@ import {
     MESSAGE_RSOCKET_COMPOSITE_METADATA,
     MESSAGE_RSOCKET_ROUTING,
     RSocketClient,
-} from "rsocket-core/build";
-import { authentication } from "./auth";
+} from "rsocket-core";
+import { Authentication } from "./auth";
 
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
 let isConnected = false;
-let _rsClient;
-let _rsConnection;
-let _url;
-let _authFn;
-let _debug;
-let _vueInstance;
+var _rsClient;
+var _rsConnection;
+var _url;
+var _authFn;
+var _debug;
+var _vueInstance;
 
 /**
  * encode the auth and route metadata as required by the protocol spec
@@ -60,12 +60,12 @@ function _encodeMetaData(auth, route, customMetadata) {
     const metadata = [];
 
     if (auth) {
-        if (auth.authType === authentication.BEARER) {
+        if (auth.authType === Authentication.BEARER) {
             metadata.push([
                 MESSAGE_RSOCKET_AUTHENTICATION,
                 encodeBearerAuthMetadata(auth.value),
             ]);
-        } else if (auth.authType === authentication.BASIC) {
+        } else if (auth.authType === Authentication.BASIC) {
             const user = auth.value;
             metadata.push([
                 MESSAGE_RSOCKET_AUTHENTICATION,
@@ -113,16 +113,13 @@ async function createRSocket({
             // payload
             payload: {
                 data: undefined,
-                metadata: _encodeMetaData(await authFn()),
+                metadata: _encodeMetaData(await authFn(), undefined, undefined),
             },
         },
         transport: new RSocketWebSocketClient({ url }, BufferEncoders),
     };
 
     function install(app) {
-        if (install.installed) return;
-        install.installed = true;
-
         app.config.globalProperties.$rs_subscriptions = new Map();
 
         _vueInstance = app;

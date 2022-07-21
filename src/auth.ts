@@ -22,9 +22,20 @@
  * SOFTWARE.
  */
 
-export class User {
-    constructor(username, password) {
-        this.username = username;
-        this.password = password;
+/**
+ * The authentication type to use
+ */
+export enum Authentication {
+    BASIC,
+    BEARER,
+}
+
+export class Auth {
+    private authType: Authentication;
+    private value: any;
+
+    constructor(authType: Authentication, value: any) {
+        this.authType = authType;
+        this.value = value;
     }
 }
