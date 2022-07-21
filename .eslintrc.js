@@ -23,20 +23,13 @@
  */
 
 module.exports = {
+    parser: "@typescript-eslint/parser",
+    plugins: ["@typescript-eslint"],
     env: {
         browser: true,
-        commonjs: true,
-        es6: true,
     },
     // Rules order is important, please avoid shuffling them
-    extends: [
-        // Base ESLint recommended rules
-        "eslint:recommended",
-
-        // https://github.com/prettier/eslint-config-prettier#installation
-        // usage with Prettier, provided by 'eslint-config-prettier'.
-        "prettier",
-    ],
+    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
     settings: {
         "import/resolver": {
             node: {
