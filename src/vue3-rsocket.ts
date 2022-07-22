@@ -128,14 +128,15 @@ async function createRSocket(setup) {
     };
 }
 
-type onConnectionStatusChange = (status: RSocketConnectionStatus) => void;
+// eslint-disable-next-line no-unused-vars
+type OnConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
 /**
  * Connect to the RSocket server and subscribe to the connection status
  * @param {(RSocketConnectionStatus) => {}} onConnectionStatusChange Function executed when a connection status changes
  * @returns {Promise<*>} connection
  */
-async function connect(onConnectionStatusChange) {
+async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
     if (_rsConnection) throw new Error(`Already connected to: ${_rsSetup.url}`);
 
     try {
