@@ -36,7 +36,7 @@ import {
     RSocketClient,
 } from "rsocket-core";
 import { ConnectionStatus, ReactiveSocket } from "rsocket-types";
-import { Authentication } from "./auth";
+import Authentication, { AuthenticationType } from "./Authentication";
 import { Buffer } from "buffer";
 import RSocketSetup from "./RSocketSetup";
 
@@ -56,17 +56,20 @@ let _vueInstance;
  * @returns {*}
  * @private
  */
-function _encodeMetaData(auth, route, customMetadata) {
+function _encodeMetaData(auth, route: string, customMetadata) {
     const metadata = [];
 
     if (auth) {
-        if (auth.authType === Authentication.BEARER) {
+        const authType = auth.authType;
+
+        if (authType === AuthenticationType.BEARER) {
+            const bearerToken = auth.authData.value;
             metadata.push([
                 MESSAGE_RSOCKET_AUTHENTICATION,
-                encodeBearerAuthMetadata(auth.value),
+                encodeBearerAuthMetadata(bearerToken),
             ]);
-        } else if (auth.authType === Authentication.BASIC) {
-            const user = auth.value;
+        } else if (authType === AuthenticationType.BASIC) {
+            const user = auth.authData;
             metadata.push([
                 MESSAGE_RSOCKET_AUTHENTICATION,
                 encodeSimpleAuthMetadata(user.username, user.password),

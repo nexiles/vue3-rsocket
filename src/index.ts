@@ -23,8 +23,22 @@
  */
 
 import RSocketSetup from "./RSocketSetup";
+import Authentication from "./Authentication";
+import {
+    UserAuth,
+    BearerAuth,
+    createBasicAuth,
+    createBearerAuth,
+} from "./Authentication";
 import { createRSocket, useRSocket } from "./vue3-rsocket";
-import { Authentication, Auth } from "./auth";
-import { User } from "./user";
 
-export { RSocketSetup, createRSocket, useRSocket, Authentication, Auth, User };
+export {
+    RSocketSetup,
+    Authentication,
+    UserAuth,
+    BearerAuth,
+    createBasicAuth,
+    createBearerAuth,
+    createRSocket,
+    useRSocket,
+};

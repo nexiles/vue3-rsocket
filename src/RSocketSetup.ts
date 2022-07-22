@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { Auth } from "./auth";
+import Authentication from "./Authentication";
 import { MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
 
 /**
@@ -32,7 +32,7 @@ import { MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
  */
 export default class RSocketSetup {
     url: string | undefined;
-    authFn = () => Promise<Auth>;
+    authFn = () => Promise<Authentication>;
 
     dataMimeType = "application/json";
     keepAlive = 10000;
