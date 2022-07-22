@@ -36,13 +36,14 @@ import {
     RSocketClient,
 } from "rsocket-core";
 import { ConnectionStatus, ReactiveSocket } from "rsocket-types";
-import Authentication, { AuthenticationType } from "./Authentication";
+import { AuthenticationType } from "./Authentication";
 import { Buffer } from "buffer";
 import RSocketSetup from "./RSocketSetup";
+import RSocketConnectionStatus from "./RSocketConnectionStatus";
 
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
-let rSocketConnectionStatus: RSocketConnectionStatus = undefined;
+let _rSocketConnectionStatus: RSocketConnectionStatus = undefined;
 let _rsSetup: RSocketSetup;
 let _rsClient: RSocketClient<any, Buffer>;
 let _rsConnection: ReactiveSocket<any, Buffer>;
@@ -127,32 +128,14 @@ async function createRSocket(setup) {
     };
 }
 
-class RSocketConnectionStatus {
-    status: ConnectionStatus;
-    connected: boolean;
-
-    constructor(status) {
-        this.status = status;
-        this.connected = status.kind === "CONNECTED";
-    }
-
-    getKind() {
-        return this.status.kind;
-    }
-
-    isConnected() {
-        return this.connected;
-    }
-}
-
-type onStateChange = (status: RSocketConnectionStatus) => void;
+type onConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
 /**
  * Connect to the RSocket server and subscribe to the connection status
- * @param {(RSocketConnectionStatus) => {}} onStateChange Function executed when a connection status changes
+ * @param {(RSocketConnectionStatus) => {}} onConnectionStatusChange Function executed when a connection status changes
  * @returns {Promise<*>} connection
  */
-async function connect(onStateChange) {
+async function connect(onConnectionStatusChange) {
     if (_rsConnection) throw new Error(`Already connected to: ${_rsSetup.url}`);
 
     try {
@@ -166,13 +149,13 @@ async function connect(onStateChange) {
         _rsConnection
             .connectionStatus()
             .subscribe((connectionStatus: ConnectionStatus) => {
-                rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
+                _rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
                 if (isDebug())
                     console.log(
-                        `RSocket connection status: ${rSocketConnectionStatus.getKind()}`
+                        `RSocket connection status: ${_rSocketConnectionStatus.getKind()}`
                     );
 
-                onStateChange(rSocketConnectionStatus);
+                onConnectionStatusChange(_rSocketConnectionStatus);
             });
     } catch (e) {
         throw new Error("Unable to subscribe to connectionStatus");
@@ -191,7 +174,7 @@ async function connect(onStateChange) {
 async function subscribe(route, onMessage, customMetadata = {}) {
     if (!_rsConnection) throw new Error("Could not subscribe. No connection found");
 
-    if (!rSocketConnectionStatus.isConnected())
+    if (!_rSocketConnectionStatus.isConnected())
         throw new Error("Could not subscribe. Not connected");
 
     if (typeof onMessage !== "function")
@@ -263,7 +246,6 @@ function unsubscribe(route) {
  */
 function useRSocket() {
     return {
-        rSocketConnectionStatus,
         connect,
         subscribe,
         unsubscribe,

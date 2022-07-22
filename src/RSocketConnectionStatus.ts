@@ -22,25 +22,22 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./RSocketSetup";
-import Authentication from "./Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./Authentication";
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import RSocketConnectionStatus from "./RSocketConnectionStatus";
+import { ConnectionStatus } from "rsocket-types";
 
-export {
-    RSocketSetup,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-    createRSocket,
-    useRSocket,
-    RSocketConnectionStatus,
-};
+export default class RSocketConnectionStatus {
+    status: ConnectionStatus;
+    connected: boolean;
+
+    constructor(status) {
+        this.status = status;
+        this.connected = status.kind === "CONNECTED";
+    }
+
+    getKind() {
+        return this.status.kind;
+    }
+
+    isConnected() {
+        return this.connected;
+    }
+}
