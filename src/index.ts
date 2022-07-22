@@ -22,8 +22,9 @@
  * SOFTWARE.
  */
 
+import RSocketSetup from "./RSocketSetup";
 import { createRSocket, useRSocket } from "./vue3-rsocket";
 import { Authentication, Auth } from "./auth";
 import { User } from "./user";
 
-export { createRSocket, useRSocket, Authentication, Auth, User };
+export { RSocketSetup, createRSocket, useRSocket, Authentication, Auth, User };

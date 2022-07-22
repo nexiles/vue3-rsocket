@@ -22,20 +22,32 @@
  * SOFTWARE.
  */
 
+import { Auth } from "./auth";
+import { MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
+
 /**
- * The authentication type to use
+ * Create an RSocket setup object with common defaults.
+ *
+ * Set fields like e.g.: new RSocketSetup({ url: "wss://localhost:7000" });
  */
-export enum Authentication {
-    BASIC,
-    BEARER,
-}
+export default class RSocketSetup {
+    url: string | undefined;
+    authFn = () => Promise<Auth>;
 
-export class Auth {
-    authType: Authentication;
-    value: any;
+    dataMimeType = "application/json";
+    keepAlive = 10000;
+    lifetime = 180000;
+    metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
 
-    constructor(authType: Authentication, value: any) {
-        this.authType = authType;
-        this.value = value;
+    payLoadData: unknown = undefined;
+
+    debug = false;
+
+    public constructor(init?: Partial<RSocketSetup>) {
+        Object.assign(this, init);
+    }
+
+    auth() {
+        return this.authFn;
     }
 }
