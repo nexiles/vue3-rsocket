@@ -41,6 +41,7 @@ import { Buffer } from "buffer";
 import RSocketSetup from "./RSocketSetup";
 import RSocketConnectionStatus from "./RSocketConnectionStatus";
 import RSocketMessage from "./RSocketMessage";
+import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
@@ -48,7 +49,10 @@ let _rSocketConnectionStatus: RSocketConnectionStatus = undefined;
 let _rsSetup: RSocketSetup;
 let _rsClient: RSocketClient<string, Buffer>;
 let _rsConnection: ReactiveSocket<string, Buffer>;
+
 let _vueInstance;
+
+const _requestedStreams = new Map<string, ISubscription>();
 
 /**
  * encode the auth and route metadata as required by the protocol spec
@@ -118,7 +122,7 @@ async function createRSocket(setup) {
     };
 
     function install(app) {
-        app.config.globalProperties.$rs_subscriptions = new Map();
+        app.config.globalProperties.$rs_requestedStreams = _requestedStreams;
 
         _vueInstance = app;
         _rsClient = new RSocketClient(options);
@@ -205,7 +209,7 @@ async function requestStream(
     if (invalidFunction(onMessage))
         throw new Error("Invalid parameter. 'onMessage' is not a function");
 
-    if (isDebug()) console.log(`requestStream on route: ${route}`);
+    if (isDebug()) console.log(`requestStream on route: "${route}"`);
 
     _rsConnection
         .requestStream({
@@ -230,36 +234,31 @@ async function requestStream(
                 onMessage(message);
             },
             onSubscribe: (sub) => {
-                if (_vueInstance.config.globalProperties.$rs_subscriptions.has(route)) {
+                if (_requestedStreams.has(route)) {
                     console.warn(
-                        `Multiple subscription for route: ${route}, closing new subscription`
+                        `Multiple 'requestedStreams' for route: "${route}", closing new subscription`
                     );
                     sub.cancel();
                     return;
                 }
 
-                if (isDebug()) console.log(`Add "${route}" to subscribed routes`);
-                _vueInstance.config.globalProperties.$rs_subscriptions.set(route, sub);
+                if (isDebug()) console.log(`Add "${route}" to 'requestedStreams'`);
+                _requestedStreams.set(route, sub);
                 sub.request(JAVA_MAX_SAFE_INTEGER);
             },
         });
 }
 
-/**
- * Cancel the subscription to a given route.
- * @param {string} route Route to unsubscribe from.
- */
-function unsubscribe(route) {
-    if (!_vueInstance.config.globalProperties.$rs_subscriptions?.has(route)) {
-        if (isDebug()) console.log(`No subscription for route: ${route}`);
+function cancelRequestStream(route) {
+    if (!_requestedStreams.has(route)) {
+        if (isDebug()) console.log(`No subscription for route: "${route}"`);
         return;
     }
 
-    if (isDebug()) console.log(`Canceling subscription to route: ${route}`);
-    _vueInstance.config.globalProperties.$rs_subscriptions.get(route).cancel();
-
-    if (isDebug()) console.log(`Remove "${route}" from subscribed routes`);
-    _vueInstance.config.globalProperties.$rs_subscriptions.delete(route);
+    if (isDebug())
+        console.log(`Canceling and removing 'requestedStream' for route: "${route}"`);
+    _requestedStreams.get(route).cancel();
+    _requestedStreams.delete(route);
 }
 
 /**
@@ -270,7 +269,7 @@ function useRSocket() {
     return {
         connect,
         requestStream,
-        unsubscribe,
+        cancelRequestStream,
     };
 }
 
