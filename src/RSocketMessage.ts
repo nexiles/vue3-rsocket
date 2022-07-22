@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 /*
  * MIT License
  *
@@ -22,27 +24,20 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./RSocketSetup";
-import Authentication from "./Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./Authentication";
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import RSocketConnectionStatus from "./RSocketConnectionStatus";
-import RSocketMessage from "./RSocketMessage";
+export default class RSocketMessage<D, M> {
+    data: D;
+    metaData: M;
 
-export {
-    RSocketSetup,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-    createRSocket,
-    useRSocket,
-    RSocketConnectionStatus,
-    RSocketMessage,
-};
+    constructor(messageData) {
+        this.data = messageData.data;
+        this.metaData = messageData.metaData;
+    }
+
+    getDataAsJson() {
+        return this.data ? JSON.parse(this.data.toString()) : undefined;
+    }
+
+    getMetadataAsJson() {
+        return this.metaData ? JSON.parse(this.metaData.toString()) : undefined;
+    }
+}

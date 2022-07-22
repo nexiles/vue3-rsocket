@@ -40,6 +40,7 @@ import { AuthenticationType } from "./Authentication";
 import { Buffer } from "buffer";
 import RSocketSetup from "./RSocketSetup";
 import RSocketConnectionStatus from "./RSocketConnectionStatus";
+import RSocketMessage from "./RSocketMessage";
 
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
@@ -176,6 +177,9 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
     return _rsConnection;
 }
 
+// eslint-disable-next-line no-unused-vars
+type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
+
 /**
  * Subscribe to a given route.
  * @param {string} route Route to subscribe to.
@@ -183,14 +187,14 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
  * @param {object?} customMetadata Provide custom metadata to a subscription
  * @returns {Promise<void>}
  */
-async function subscribe(route, onMessage, customMetadata = {}) {
+async function subscribe(route, onMessage: OnMessage, customMetadata = {}) {
     if (!_rsConnection) throw new Error("Could not subscribe. No connection found");
 
     if (!_rSocketConnectionStatus.isConnected())
         throw new Error("Could not subscribe. Not connected");
 
     if (typeof onMessage !== "function")
-        throw new Error("Invalid parameter. onMessage is not a function");
+        throw new Error("Invalid parameter. 'onMessage' is not a function");
 
     if (isDebug()) console.log(`Subscribing to route: ${route}`);
     _rsConnection
@@ -204,20 +208,15 @@ async function subscribe(route, onMessage, customMetadata = {}) {
             onError: (error) => {
                 console.log(error.message);
             },
-            onNext: (value) => {
-                const data = JSON.parse(value.data);
-                const metadata = value.metadata
-                    ? JSON.parse(value.metadata.toString())
-                    : undefined;
+            onNext: (messageData) => {
+                const message = new RSocketMessage(messageData);
 
                 if (isDebug()) {
-                    const prettyData = JSON.stringify(data);
-                    const prettyMetadata = JSON.stringify(metadata);
                     console.log(
-                        `Receiving message on route "${route}" data: ${prettyData} metadata: ${prettyMetadata}`
+                        `Receiving message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
                     );
                 }
-                onMessage(data, metadata);
+                onMessage(message);
             },
             onSubscribe: (sub) => {
                 if (_vueInstance.config.globalProperties.$rs_subscriptions.has(route)) {
