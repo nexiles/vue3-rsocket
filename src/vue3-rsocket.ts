@@ -45,8 +45,8 @@ const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
 let _rSocketConnectionStatus: RSocketConnectionStatus = undefined;
 let _rsSetup: RSocketSetup;
-let _rsClient: RSocketClient<any, Buffer>;
-let _rsConnection: ReactiveSocket<any, Buffer>;
+let _rsClient: RSocketClient<string, Buffer>;
+let _rsConnection: ReactiveSocket<string, Buffer>;
 let _vueInstance;
 
 /**

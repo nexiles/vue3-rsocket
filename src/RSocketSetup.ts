@@ -39,7 +39,7 @@ export default class RSocketSetup {
     lifetime = 180000;
     metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
 
-    payLoadData: unknown = undefined;
+    payLoadData: string = undefined;
 
     debug = false;
 
