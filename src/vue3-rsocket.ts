@@ -180,40 +180,51 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
 // eslint-disable-next-line no-unused-vars
 type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
 
-/**
- * Subscribe to a given route.
- * @param {string} route Route to subscribe to.
- * @param {function} onMessage Callback to execute on every message.
- * @param {object?} customMetadata Provide custom metadata to a subscription
- * @returns {Promise<void>}
- */
-async function subscribe(route, onMessage: OnMessage, customMetadata = {}) {
-    if (!_rsConnection) throw new Error("Could not subscribe. No connection found");
+function noConnectionCreated(): boolean {
+    return !_rsConnection;
+}
 
-    if (!_rSocketConnectionStatus.isConnected())
-        throw new Error("Could not subscribe. Not connected");
+function notConnected(): boolean {
+    return !_rSocketConnectionStatus.isConnected();
+}
 
-    if (typeof onMessage !== "function")
+function invalidFunction(fn): boolean {
+    return typeof fn !== "function";
+}
+
+async function requestStream(
+    route,
+    onMessage: OnMessage,
+    data = undefined,
+    metaData = {}
+) {
+    if (noConnectionCreated())
+        throw new Error("Could not 'requestStream'. No RSocket connection found");
+    if (notConnected())
+        throw new Error("Could not 'requestStream'. RSocket not connected");
+    if (invalidFunction(onMessage))
         throw new Error("Invalid parameter. 'onMessage' is not a function");
 
-    if (isDebug()) console.log(`Subscribing to route: ${route}`);
+    if (isDebug()) console.log(`requestStream on route: ${route}`);
+
     _rsConnection
         .requestStream({
-            metadata: await _encodeMetaData(await _rsSetup.auth(), route, customMetadata),
+            data: data,
+            metadata: await _encodeMetaData(await _rsSetup.auth(), route, metaData),
         })
         .subscribe({
             onComplete: () => {
-                if (isDebug()) console.log("Subscription completed");
+                if (isDebug()) console.log(`'requestStream' for : "${route}" completed`);
             },
             onError: (error) => {
-                console.log(error.message);
+                console.log(`'requestStream' for : "${route}" error: ${error.message}`);
             },
             onNext: (messageData) => {
                 const message = new RSocketMessage(messageData);
 
                 if (isDebug()) {
                     console.log(
-                        `Receiving message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
+                        `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
                     );
                 }
                 onMessage(message);
@@ -258,7 +269,7 @@ function unsubscribe(route) {
 function useRSocket() {
     return {
         connect,
-        subscribe,
+        requestStream,
         unsubscribe,
     };
 }
