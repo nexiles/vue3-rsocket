@@ -27,14 +27,20 @@ import { ConnectionStatus } from "rsocket-types";
 export default class RSocketConnectionStatus {
     status: ConnectionStatus;
     connected: boolean;
+    error: Error;
 
-    constructor(status) {
+    constructor(status: ConnectionStatus) {
         this.status = status;
         this.connected = status.kind === "CONNECTED";
+        this.error = status.kind === "ERROR" ? status.error : undefined;
     }
 
     getKind() {
         return this.status.kind;
+    }
+
+    isError() {
+        return this.error;
     }
 
     isConnected() {

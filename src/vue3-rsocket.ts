@@ -131,6 +131,16 @@ async function createRSocket(setup) {
 // eslint-disable-next-line no-unused-vars
 type OnConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
+function logConnectionStatus() {
+    if (_rSocketConnectionStatus.isError())
+        console.log(
+            `RSocket connection status: ${_rSocketConnectionStatus.getKind()} - ${
+                _rSocketConnectionStatus.error?.message
+            }`
+        );
+    else console.log(`RSocket connection status: ${_rSocketConnectionStatus.getKind()}`);
+}
+
 /**
  * Connect to the RSocket server and subscribe to the connection status
  * @param {(RSocketConnectionStatus) => {}} onConnectionStatusChange Function executed when a connection status changes
@@ -146,16 +156,17 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
         throw new Error("Unable to connect to RSocket server");
     }
 
+    if (onConnectionStatusChange && !(typeof onConnectionStatusChange === "function"))
+        throw new Error(
+            "Invalid parameter. 'onConnectionStatusChange' is not a function"
+        );
+
     try {
         _rsConnection
             .connectionStatus()
             .subscribe((connectionStatus: ConnectionStatus) => {
                 _rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
-                if (isDebug())
-                    console.log(
-                        `RSocket connection status: ${_rSocketConnectionStatus.getKind()}`
-                    );
-
+                if (isDebug()) logConnectionStatus();
                 onConnectionStatusChange(_rSocketConnectionStatus);
             });
     } catch (e) {
