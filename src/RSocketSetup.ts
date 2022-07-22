@@ -23,7 +23,7 @@
  */
 
 import Authentication from "./Authentication";
-import { MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
+import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
 
 /**
  * Create an RSocket setup object with common defaults.
@@ -34,7 +34,7 @@ export default class RSocketSetup {
     url: string | undefined;
     authFn = () => Promise<Authentication>;
 
-    dataMimeType = "application/json";
+    dataMimeType = APPLICATION_JSON.string;
     keepAlive = 10000;
     lifetime = 180000;
     metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
