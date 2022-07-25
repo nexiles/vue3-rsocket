@@ -22,6 +22,10 @@
  * SOFTWARE.
  */
 
+/**
+ * Default to use for 'requestStream' when the backend is
+ * written in Java.
+ */
 const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
 export { JAVA_MAX_SAFE_INTEGER };

@@ -24,6 +24,9 @@
 
 import { ConnectionStatus } from "rsocket-types";
 
+/**
+ * Wrapper class to hold data received when an RSocket connection status changes.
+ */
 export default class RSocketConnectionStatus {
     status: ConnectionStatus;
     connected: boolean;
@@ -35,15 +38,24 @@ export default class RSocketConnectionStatus {
         this.error = status.kind === "ERROR" ? status.error : undefined;
     }
 
-    getKind() {
+    /**
+     * Get ki
+     */
+    getKind(): string {
         return this.status.kind;
     }
 
-    isError() {
-        return this.error;
+    /**
+     * True if an Error is available, false when not.
+     */
+    isError(): boolean {
+        return this.error !== undefined;
     }
 
-    isConnected() {
+    /**
+     * True if the RSocket connection is established.
+     */
+    isConnected(): boolean {
         return this.connected;
     }
 }

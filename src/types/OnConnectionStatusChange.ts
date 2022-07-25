@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  * MIT License
  *
@@ -24,7 +25,9 @@
 
 import RSocketConnectionStatus from "../classes/RSocketConnectionStatus";
 
-// eslint-disable-next-line no-unused-vars
+/**
+ * Function definition of function to be called when connection status changes.
+ */
 type OnConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
 export default OnConnectionStatusChange;

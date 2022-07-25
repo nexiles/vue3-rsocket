@@ -24,6 +24,10 @@
 
 // noinspection JSUnusedGlobalSymbols
 
+/**
+ * Wrapper class to hold data received on an RSocket message
+ * with helper functions.
+ */
 export default class RSocketMessage<D, M> {
     data: D;
     metaData: M;
@@ -33,10 +37,16 @@ export default class RSocketMessage<D, M> {
         this.metaData = messageData.metaData;
     }
 
+    /**
+     * Return data as JSON when given.
+     */
     getDataAsJson() {
         return this.data ? JSON.parse(this.data.toString()) : undefined;
     }
 
+    /**
+     * Return metaData as JSON when given.
+     */
     getMetadataAsJson() {
         return this.metaData ? JSON.parse(this.metaData.toString()) : undefined;
     }

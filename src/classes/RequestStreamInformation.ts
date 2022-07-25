@@ -25,6 +25,11 @@
 import OnMessage from "../types/OnMessage";
 import { JAVA_MAX_SAFE_INTEGER } from "../constants/MessageConstants";
 
+/**
+ * Wrapper class to set up stream request easily with appropriate defaults.
+ *
+ * Set fields like e.g.: new RequestStreamInformation({ amount: 10 });
+ */
 export default class RequestStreamInformation {
     onMessage: OnMessage;
     data: string;

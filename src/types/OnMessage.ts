@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  * MIT License
  *
@@ -24,7 +25,9 @@
 
 import RSocketMessage from "../classes/RSocketMessage";
 
-// eslint-disable-next-line no-unused-vars
+/**
+ * Function definition of function to be called when an RSocket message was received.
+ */
 type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
 
 export default OnMessage;

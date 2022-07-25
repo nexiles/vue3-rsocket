@@ -47,6 +47,9 @@ export default class RSocketSetup {
         Object.assign(this, init);
     }
 
+    /**
+     * Get the asynchronous auth function
+     */
     auth() {
         return this.authFn;
     }
