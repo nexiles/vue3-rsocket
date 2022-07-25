@@ -14,13 +14,17 @@ This library for **vue3** enables to easily subscribe to a RSocket server and re
 
 ## Motivation
 
-The goal of this library is to wrap the functionality of [rsocket-js](https://github.com/rsocket/rsocket-js) in an easy-to-use plugin for Vue 3.
-An example implementation of RSocket using a SpringCloud Gateway can be found [here](https://github.com/nexiles/spring-cloud-gateway-rsocket-websocket).
+The goal of this library is to wrap the functionality of [rsocket-js](https://github.com/rsocket/rsocket-js)
+in an easy-to-use plugin for Vue 3.
+
+An example implementation of RSocket using a SpringCloud Gateway can be found
+[here](https://github.com/nexiles/spring-cloud-gateway-rsocket-websocket).
 
 ## Example
 >TODO: Add an example project using this library
 
 ## Installation
+
 ```shell
 yarn add vue3-rsocket
 ```
@@ -31,12 +35,16 @@ npm install --save vue3-rsocket
 
 ## Setup
 
+For all possible configuration values have look at `src/classes/RSocketConfig.ts`.
+
 ### [Vue 3]((https://v3.vuejs.org/))
+
 >TODO: Add setup instructions for vue3 project
 
 ### [Quasar](https://quasar.dev/)
 
 #### JWT
+
 ```javascript
 import { boot } from "quasar/wrappers";
 import { createRSocket, useRSocket, Auth, authentication } from "vue3-rsocket";
@@ -93,7 +101,7 @@ export default boot(async ({ app }) => {
 ```
 
 ## Usage
-> _Only one active subscription per route is allowed._
+
  ```javascript
 <script>
 import { onBeforeUnmount } from "vue";
@@ -135,8 +143,9 @@ export default {
 
 ## Disclaimer
 
-We are pretty new to RSocket and library publishing, so this code or the bundling process might not be optimized, suggestions are welcome.
+We are pretty new to *RSocket* and library publishing, so this code or the bundling process might not be optimized,
+suggestions are welcome. Also, we are pretty new to *TypeScript*, so this code might not be in the best shape possible.
 
 ## Contributing
 
-Every contribution is highly appreciated!
+**Every contribution is highly appreciated!**
