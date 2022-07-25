@@ -59,7 +59,7 @@ export default class Authentication {
  * Helper interface for easy Authentication creation
  * @see Authentication
  */
-interface Auth {
+export interface Auth {
     /**
      * Get the authentication type:
      * @see AuthenticationType
