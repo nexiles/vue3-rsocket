@@ -53,6 +53,7 @@ let _rsConnection: ReactiveSocket<string, Buffer>;
 let _vueInstance;
 
 const _requestedStreams = new Map<string, ISubscription>();
+const _stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
 /**
  * encode the auth and route metadata as required by the protocol spec
@@ -172,7 +173,11 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
             .subscribe((connectionStatus: ConnectionStatus) => {
                 _rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
                 if (isDebug()) logConnectionStatus();
-                onConnectionStatusChange(_rSocketConnectionStatus);
+                if (onConnectionStatusChange)
+                    onConnectionStatusChange(_rSocketConnectionStatus);
+
+                // Handle staged ones
+                handleStagedRequestedStreams();
             });
     } catch (e) {
         throw new Error("Unable to subscribe to connectionStatus");
@@ -183,6 +188,17 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
 
 // eslint-disable-next-line no-unused-vars
 type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
+
+class RequestStreamInformation {
+    onMessage: OnMessage;
+    data: string;
+    metaData: unknown = {};
+    amount: number = JAVA_MAX_SAFE_INTEGER;
+
+    constructor(init?: Partial<RequestStreamInformation>) {
+        Object.assign(this, init);
+    }
+}
 
 function noConnectionCreated(): boolean {
     return !_rsConnection;
@@ -196,25 +212,39 @@ function invalidFunction(fn): boolean {
     return typeof fn !== "function";
 }
 
-async function requestStream(
-    route,
-    onMessage: OnMessage,
-    data = undefined,
-    metaData = {}
-) {
+function stageRequestedStream(route: string, rsi: RequestStreamInformation) {
+    _stagedRequestedStreams.set(route, rsi);
+}
+
+async function handleStagedRequestedStreams() {
+    _stagedRequestedStreams.forEach((value, key, map) => {
+        const route = key;
+        requestStream(route, value);
+        map.delete(route);
+    });
+}
+
+async function requestStream(route: string, rsi: RequestStreamInformation) {
     if (noConnectionCreated())
         throw new Error("Could not 'requestStream'. No RSocket connection found");
-    if (notConnected())
-        throw new Error("Could not 'requestStream'. RSocket not connected");
-    if (invalidFunction(onMessage))
+
+    if (notConnected()) {
+        console.debug(
+            "Could not 'requestStream'. RSocket not connected - Try to connect now.."
+        );
+        stageRequestedStream(route, rsi);
+        await connect(undefined);
+    }
+
+    if (invalidFunction(rsi.onMessage))
         throw new Error("Invalid parameter. 'onMessage' is not a function");
 
     if (isDebug()) console.log(`requestStream on route: "${route}"`);
 
     _rsConnection
         .requestStream({
-            data: data,
-            metadata: await _encodeMetaData(await _rsSetup.auth(), route, metaData),
+            data: rsi.data,
+            metadata: await _encodeMetaData(await _rsSetup.auth(), route, rsi.metaData),
         })
         .subscribe({
             onComplete: () => {
@@ -231,7 +261,7 @@ async function requestStream(
                         `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
                     );
                 }
-                onMessage(message);
+                rsi.onMessage(message);
             },
             onSubscribe: (sub) => {
                 if (_requestedStreams.has(route)) {
@@ -242,11 +272,20 @@ async function requestStream(
                     return;
                 }
 
-                if (isDebug()) console.log(`Add "${route}" to 'requestedStreams'`);
+                const requestAmount = rsi.amount;
+
+                if (isDebug())
+                    console.log(
+                        `Add "${route}" to 'requestedStreams' - requesting next: ${requestAmount}`
+                    );
                 _requestedStreams.set(route, sub);
-                sub.request(JAVA_MAX_SAFE_INTEGER);
+                sub.request(requestAmount);
             },
         });
+}
+
+async function friendlyRequestStream(route: string, onMessage: OnMessage) {
+    await requestStream(route, new RequestStreamInformation({ onMessage }));
 }
 
 function cancelRequestStream(route) {
@@ -261,14 +300,11 @@ function cancelRequestStream(route) {
     _requestedStreams.delete(route);
 }
 
-/**
- * Expose functions to interact with a rsocket server
- * @returns {{subscribe: ((function(string, Function, Object=): Promise<void>)|*), unsubscribe: unsubscribe, isConnected: boolean, connect: (function(function(status): {}=): *)}}
- */
 function useRSocket() {
     return {
         connect,
         requestStream,
+        friendlyRequestStream,
         cancelRequestStream,
     };
 }
