@@ -83,7 +83,6 @@ class Vue3Rsocket {
         Vue.$rs = this;
 
         Vue.provide("vue3-rsocket", Vue.$rs);
-        Vue.provide("rs", Vue.$rs);
         Vue.config.globalProperties.$rs = Vue.$rs;
 
         Vue.config.globalProperties.$rs.requestedStreams = this.requestedStreams;
@@ -164,7 +163,7 @@ class Vue3Rsocket {
         return fn && typeof fn !== "function";
     }
 
-    public async connect(onConnectionStatusChange: OnConnectionStatusChange) {
+    private async connect(onConnectionStatusChange: OnConnectionStatusChange) {
         if (this.noClientPresent()) throw new Error(`RSocket client not created`);
 
         if (this.connected()) {
