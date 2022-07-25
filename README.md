@@ -47,29 +47,18 @@ For all possible configuration values have look at `src/classes/RSocketConfig.ts
 
 ```javascript
 import { boot } from "quasar/wrappers";
-import { createRSocket, useRSocket, Auth, authentication } from "vue3-rsocket";
+import { BearerAuth, RSocketConfig } from "vue3-rsocket";
+import Vue3RSocket from "vue3-rsocket";
 
 export default boot(async ({ app }) => {
 
-  const rSocket = await createRSocket({
-    // Set the URL of the RSocket server.
-    // "WS" and "WSS" are the supported protcols
+  const rSocketConfig = new RSocketConfig({
     url: `ws://localhost:8070/server/rsocket`,
-
-    // Function returning an Auth object.
-    authFn: async () =>
-      new Auth(
-        authentication.BEARER,
-        token
-      ),
-
+    authFn: async () => new BearerAuth(token).asAuthentication(),
     debug: true
   });
 
-  app.use(rSocket);
-
-  const rs = useRSocket();
-  await rs.connect();
+  await app.use(Vue3RSocket, rSocketConfig);
 });
 ```
 
@@ -77,26 +66,18 @@ export default boot(async ({ app }) => {
 
 ```javascript
 import { boot } from "quasar/wrappers";
-import { createRSocket, useRSocket, Auth, authentication, User } from "vue3-rsocket";
+import { UserAuth, RSocketConfig } from "vue3-rsocket";
+import Vue3RSocket from "vue3-rsocket";
 
 export default boot(async ({ app }) => {
 
-  const rSocket = await createRSocket({
+  const rSocketConfig = new RSocketConfig({
     url: `ws://localhost:8070/server/rsocket`,
-
-    authFn: async () =>
-      new Auth(
-        authentication.BASIC,
-        new User("username", "password")
-      ),
-
+    authFn: async () => new UserAuth("username", "password").asAuthentication(),
     debug: true
-  });
+  })
 
-  app.use(rSocket);
-
-  const rs = useRSocket();
-  await rs.connect();
+  await app.use(Vue3RSocket, rSocketConfig);
 });
 ```
 
@@ -104,29 +85,28 @@ export default boot(async ({ app }) => {
 
  ```javascript
 <script>
-import { onBeforeUnmount } from "vue";
-import { useRSocket } from "vue3-rsocket";
+import { onBeforeUnmount, inject } from "vue";
+import { RequestStreamInformation } from "vue3-rsocket";
 
 export default {
   setup() {
-    const rs = useRSocket();
+    const rs = inject("vue3-rsocket");
 
-    rs.subscribe("route", (data) => {
-      console.log(data);
-    });
+    // Simle 'requestStream' function
+    rs.friendlyRequestStream("route", (data) => console.log(data));
 
-    rs.subscribe(
+    rs.requestStream(
       "routeWithMetadata",
-      (data) => {
-        console.log(data)
-      },
-      { key: "value" }
+      new RequestStreamInformation({
+        data: "Hey",
+        metaData: { requester: "Fred Flintstone" },
+      })
     );
 
     // Unsubschribe before component is destroyed.
     onBeforeUnmount(() => {
-      rs.unsubscribe("route");
-      rs.unsubscribe("routeWithMetadata");
+      rs.cancelRequestStream("route");
+      rs.cancelRequestStream("routeWithMetadata");
     });
   },
 };
@@ -139,7 +119,7 @@ export default {
 - [ ] Add full example project with front and backend
 - [ ] Expose more configuration parameters
 - [ ] Implement local subscriptions
-- [ ] Implement more than the *request/stream* interaction model
+- [ ] Implement more than the *request-stream* interaction model
 
 ## Disclaimer
 
