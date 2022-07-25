@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.1 -- unreleased
+
+No changes yet
+
 ## 0.2.0 -- 2022-07-25
 
 :warning: The usage of this library changed completely, see updated usage

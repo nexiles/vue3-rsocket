@@ -1,6 +1,6 @@
 {
   "name": "vue3-rsocket",
-  "version": "0.2.0",
+  "version": "0.2.1-SNAPSHOT",
   "description": "Vue3 library for rsocket-js https://github.com/rsocket/rsocket-js",
   "main": "dist/vue3-rsocket.js",
   "module": "dist/vue3-rsocket.mjs",
