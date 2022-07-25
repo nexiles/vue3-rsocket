@@ -10,7 +10,9 @@ Check out the official docs: [RSocket Docs](https://rsocket.io/docs/)
 >>over a single network connection, and never synchronously blocks while
 >>waiting for a response
 
-This library for **vue3** enables to easily subscribe to a RSocket server and react on incoming messages.
+This library for **vue3** enables to easily connect to an RSocket server and react on incoming messages.
+
+Currently, only **requestStream** is supported. But this could be easily extended. Feel free to open a PR.
 
 ## Motivation
 
@@ -21,9 +23,10 @@ An example implementation of RSocket using a SpringCloud Gateway can be found
 [here](https://github.com/nexiles/spring-cloud-gateway-rsocket-websocket).
 
 ## Example
->TODO: Add an example project using this library
 
-## Installation
+:building_construction: Add an example project using this library
+
+## :floppy_disk: Installation
 
 ```shell
 yarn add vue3-rsocket
@@ -33,13 +36,13 @@ or
 npm install --save vue3-rsocket
 ```
 
-## Setup
+## :gear: Setup
 
 For all possible configuration values have look at `src/classes/RSocketConfig.ts`.
 
 ### [Vue 3]((https://v3.vuejs.org/))
 
->TODO: Add setup instructions for vue3 project
+:building_construction: Add setup instructions for vue3 project
 
 ### [Quasar](https://quasar.dev/)
 
@@ -81,7 +84,7 @@ export default boot(async ({ app }) => {
 });
 ```
 
-## Usage
+## :envelope: Usage
 
  ```javascript
 <script>
@@ -92,7 +95,7 @@ export default {
   setup() {
     const rs = inject("vue3-rsocket");
 
-    // Simle 'requestStream' function
+    // Simple 'requestStream' function
     rs.friendlyRequestStream("route", (data) => console.log(data));
 
     rs.requestStream(
@@ -126,6 +129,6 @@ export default {
 We are pretty new to *RSocket* and library publishing, so this code or the bundling process might not be optimized,
 suggestions are welcome. Also, we are pretty new to *TypeScript*, so this code might not be in the best shape possible.
 
-## Contributing
+## :handshake: Contributing
 
 **Every contribution is highly appreciated!**
