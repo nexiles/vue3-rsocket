@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  * MIT License
  *
@@ -22,38 +23,9 @@
  * SOFTWARE.
  */
 
-import Authentication from "./Authentication";
-import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
-import AuthFunction from "../types/AuthFunction";
-import LoggerFunction from "../types/LoggerFunction";
-
 /**
- * Create an RSocket setup object with common defaults.
- *
- * Set fields like e.g.: new RSocketSetup({ url: "wss://localhost:7000" });
+ * Function to use for debug logging
  */
-export default class RSocketSetup {
-    url: string | undefined;
-    authFn: AuthFunction;
+type LoggerFunction = (message: string) => void;
 
-    dataMimeType = APPLICATION_JSON.string;
-    keepAlive = 10000;
-    lifetime = 180000;
-    metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
-
-    payLoadData: string = undefined;
-
-    debug = false;
-    logger: LoggerFunction = console.log;
-
-    public constructor(init?: Partial<RSocketSetup>) {
-        Object.assign(this, init);
-    }
-
-    /**
-     * Get the asynchronous auth function
-     */
-    auth(): AuthFunction {
-        return this.authFn;
-    }
-}
+export default LoggerFunction;

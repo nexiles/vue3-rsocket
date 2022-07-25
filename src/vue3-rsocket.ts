@@ -51,19 +51,12 @@ let _rsSetup: RSocketSetup;
 let _rsClient: RSocketClient<string, Buffer>;
 let _rsConnection: ReactiveSocket<string, Buffer>;
 
+// eslint-disable-next-line no-unused-vars
 let _vueInstance;
 
 const _requestedStreams = new Map<string, ISubscription>();
 const _stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
-/**
- * encode the auth and route metadata as required by the protocol spec
- * @param auth
- * @param route
- * @param customMetadata
- * @returns {*}
- * @private
- */
 function _encodeMetaData(auth, route: string, customMetadata) {
     const metadata = [];
 
@@ -100,11 +93,7 @@ function isDebug() {
     return _rsSetup.debug;
 }
 
-/**
- * Setup the rsocket websocket client connection to the server
- * @returns {Promise<{install: install}>} Return install function required for Vue
- */
-async function createRSocket(setup) {
+async function createRSocket(setup: RSocketSetup) {
     _rsSetup = setup;
     const options = {
         setup: {
@@ -130,12 +119,11 @@ async function createRSocket(setup) {
         _rsClient = new RSocketClient(options);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     return {
         install,
     };
 }
-
-// eslint-disable-next-line no-unused-vars
 
 function logConnectionStatus() {
     if (_rSocketConnectionStatus.isError())
@@ -147,11 +135,6 @@ function logConnectionStatus() {
     else console.log(`RSocket connection status: ${_rSocketConnectionStatus.getKind()}`);
 }
 
-/**
- * Connect to the RSocket server and subscribe to the connection status
- * @param {(RSocketConnectionStatus) => {}} onConnectionStatusChange Function executed when a connection status changes
- * @returns {Promise<*>} connection
- */
 async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
     if (_rsConnection) throw new Error(`Already connected to: ${_rsSetup.url}`);
 
@@ -289,6 +272,7 @@ function cancelRequestStream(route) {
 }
 
 function useRSocket() {
+    // noinspection JSUnusedGlobalSymbols
     return {
         connect,
         requestStream,

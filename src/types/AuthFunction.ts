@@ -22,38 +22,12 @@
  * SOFTWARE.
  */
 
-import Authentication from "./Authentication";
-import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
-import AuthFunction from "../types/AuthFunction";
-import LoggerFunction from "../types/LoggerFunction";
+import Authentication from "../classes/Authentication";
 
 /**
- * Create an RSocket setup object with common defaults.
- *
- * Set fields like e.g.: new RSocketSetup({ url: "wss://localhost:7000" });
+ * Asynchronous function to use to retrieve an Authentication object
+ * @see Authentication
  */
-export default class RSocketSetup {
-    url: string | undefined;
-    authFn: AuthFunction;
+type AuthFunction = () => Promise<Authentication<any>>;
 
-    dataMimeType = APPLICATION_JSON.string;
-    keepAlive = 10000;
-    lifetime = 180000;
-    metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
-
-    payLoadData: string = undefined;
-
-    debug = false;
-    logger: LoggerFunction = console.log;
-
-    public constructor(init?: Partial<RSocketSetup>) {
-        Object.assign(this, init);
-    }
-
-    /**
-     * Get the asynchronous auth function
-     */
-    auth(): AuthFunction {
-        return this.authFn;
-    }
-}
+export default AuthFunction;
