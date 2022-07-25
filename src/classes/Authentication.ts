@@ -32,17 +32,52 @@ export enum AuthenticationType {
     BEARER,
 }
 
+/**
+ * Authentication wrapper class
+ */
 export default class Authentication {
     authType: AuthenticationType;
-    authData: any;
+    authData: unknown;
 
-    constructor(authType: AuthenticationType, authData: any) {
+    constructor(authType: AuthenticationType, authData: Auth) {
         this.authType = authType;
         this.authData = authData;
     }
+
+    /**
+     * Create Authentication by passing required data for authentication.
+     * @see UserAuth
+     * @see BearerAuth
+     * @param authData the data required for authentication.
+     */
+    static create(authData: Auth) {
+        return new Authentication(authData.getType(), authData);
+    }
 }
 
-export class UserAuth {
+/**
+ * Helper interface for easy Authentication creation
+ * @see Authentication
+ */
+interface Auth {
+    /**
+     * Get the authentication type:
+     * @see AuthenticationType
+     */
+    getType(): AuthenticationType;
+
+    /**
+     * Helper to return as Authentication
+     * @see Authentication
+     */
+    asAuthentication(): Authentication;
+}
+
+/**
+ * UserAuth wrapper class. Used for:
+ * @see Authentication
+ */
+export class UserAuth implements Auth {
     private username: string;
     private password: string;
 
@@ -50,20 +85,32 @@ export class UserAuth {
         this.username = username;
         this.password = password;
     }
+
+    getType(): AuthenticationType {
+        return AuthenticationType.BASIC;
+    }
+
+    asAuthentication(): Authentication {
+        return Authentication.create(this);
+    }
 }
 
-export class BearerAuth {
+/**
+ * Bearer auth wrapper class. Used for:
+ * @see Authentication
+ */
+export class BearerAuth implements Auth {
     private value: string;
 
     constructor(value: string) {
         this.value = value;
     }
-}
 
-export function createBasicAuth(username: string, password: string): Authentication {
-    return new Authentication(AuthenticationType.BASIC, new UserAuth(username, password));
-}
+    getType(): AuthenticationType {
+        return AuthenticationType.BEARER;
+    }
 
-export function createBearerAuth(value: string): Authentication {
-    return new Authentication(AuthenticationType.BEARER, new BearerAuth(value));
+    asAuthentication(): Authentication {
+        return Authentication.create(this);
+    }
 }

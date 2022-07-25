@@ -24,12 +24,7 @@
 
 import RSocketSetup from "./classes/RSocketSetup";
 import Authentication from "./classes/Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./classes/Authentication";
+import { UserAuth, BearerAuth } from "./classes/Authentication";
 import { createRSocket, useRSocket } from "./vue3-rsocket";
 import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
 import RSocketMessage from "./classes/RSocketMessage";
@@ -39,8 +34,6 @@ export {
     Authentication,
     UserAuth,
     BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
     createRSocket,
     useRSocket,
     RSocketConnectionStatus,
