@@ -22,27 +22,48 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./classes/RSocketSetup";
-import Authentication from "./classes/Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./classes/Authentication";
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
-import RSocketMessage from "./classes/RSocketMessage";
+/* eslint-disable no-unused-vars */
 
-export {
-    RSocketSetup,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-    createRSocket,
-    useRSocket,
-    RSocketConnectionStatus,
-    RSocketMessage,
-};
+/**
+ * The authentication type to use
+ */
+export enum AuthenticationType {
+    BASIC,
+    BEARER,
+}
+
+export default class Authentication {
+    authType: AuthenticationType;
+    authData: any;
+
+    constructor(authType: AuthenticationType, authData: any) {
+        this.authType = authType;
+        this.authData = authData;
+    }
+}
+
+export class UserAuth {
+    private username: string;
+    private password: string;
+
+    constructor(username: string, password: string) {
+        this.username = username;
+        this.password = password;
+    }
+}
+
+export class BearerAuth {
+    private value: string;
+
+    constructor(value: string) {
+        this.value = value;
+    }
+}
+
+export function createBasicAuth(username: string, password: string): Authentication {
+    return new Authentication(AuthenticationType.BASIC, new UserAuth(username, password));
+}
+
+export function createBearerAuth(value: string): Authentication {
+    return new Authentication(AuthenticationType.BEARER, new BearerAuth(value));
+}

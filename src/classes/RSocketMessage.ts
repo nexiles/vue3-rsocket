@@ -22,27 +22,22 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./classes/RSocketSetup";
-import Authentication from "./classes/Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./classes/Authentication";
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
-import RSocketMessage from "./classes/RSocketMessage";
+// noinspection JSUnusedGlobalSymbols
 
-export {
-    RSocketSetup,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-    createRSocket,
-    useRSocket,
-    RSocketConnectionStatus,
-    RSocketMessage,
-};
+export default class RSocketMessage<D, M> {
+    data: D;
+    metaData: M;
+
+    constructor(messageData) {
+        this.data = messageData.data;
+        this.metaData = messageData.metaData;
+    }
+
+    getDataAsJson() {
+        return this.data ? JSON.parse(this.data.toString()) : undefined;
+    }
+
+    getMetadataAsJson() {
+        return this.metaData ? JSON.parse(this.metaData.toString()) : undefined;
+    }
+}

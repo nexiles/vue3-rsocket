@@ -36,14 +36,15 @@ import {
     RSocketClient,
 } from "rsocket-core";
 import { ConnectionStatus, ReactiveSocket } from "rsocket-types";
-import { AuthenticationType } from "./Authentication";
+import { AuthenticationType } from "./classes/Authentication";
 import { Buffer } from "buffer";
-import RSocketSetup from "./RSocketSetup";
-import RSocketConnectionStatus from "./RSocketConnectionStatus";
-import RSocketMessage from "./RSocketMessage";
+import RSocketSetup from "./classes/RSocketSetup";
+import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
+import RSocketMessage from "./classes/RSocketMessage";
+import RequestStreamInformation from "./classes/RequestStreamInformation";
 import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
-
-const JAVA_MAX_SAFE_INTEGER = 2147483647;
+import OnMessage from "./types/OnMessage";
+import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
 
 let _rSocketConnectionStatus: RSocketConnectionStatus = undefined;
 let _rsSetup: RSocketSetup;
@@ -135,7 +136,6 @@ async function createRSocket(setup) {
 }
 
 // eslint-disable-next-line no-unused-vars
-type OnConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
 function logConnectionStatus() {
     if (_rSocketConnectionStatus.isError())
@@ -187,18 +187,6 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
 }
 
 // eslint-disable-next-line no-unused-vars
-type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
-
-class RequestStreamInformation {
-    onMessage: OnMessage;
-    data: string;
-    metaData: unknown = {};
-    amount: number = JAVA_MAX_SAFE_INTEGER;
-
-    constructor(init?: Partial<RequestStreamInformation>) {
-        Object.assign(this, init);
-    }
-}
 
 function noConnectionCreated(): boolean {
     return !_rsConnection;

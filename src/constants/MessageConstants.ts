@@ -22,27 +22,6 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./classes/RSocketSetup";
-import Authentication from "./classes/Authentication";
-import {
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-} from "./classes/Authentication";
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
-import RSocketMessage from "./classes/RSocketMessage";
+const JAVA_MAX_SAFE_INTEGER = 2147483647;
 
-export {
-    RSocketSetup,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    createBasicAuth,
-    createBearerAuth,
-    createRSocket,
-    useRSocket,
-    RSocketConnectionStatus,
-    RSocketMessage,
-};
+export { JAVA_MAX_SAFE_INTEGER };

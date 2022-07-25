@@ -1,5 +1,3 @@
-// noinspection JSUnusedGlobalSymbols
-
 /*
  * MIT License
  *
@@ -24,20 +22,9 @@
  * SOFTWARE.
  */
 
-export default class RSocketMessage<D, M> {
-    data: D;
-    metaData: M;
+import RSocketMessage from "../classes/RSocketMessage";
 
-    constructor(messageData) {
-        this.data = messageData.data;
-        this.metaData = messageData.metaData;
-    }
+// eslint-disable-next-line no-unused-vars
+type OnMessage = (status: RSocketMessage<unknown, unknown>) => void;
 
-    getDataAsJson() {
-        return this.data ? JSON.parse(this.data.toString()) : undefined;
-    }
-
-    getMetadataAsJson() {
-        return this.metaData ? JSON.parse(this.metaData.toString()) : undefined;
-    }
-}
+export default OnMessage;
