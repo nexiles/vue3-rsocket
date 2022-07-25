@@ -93,6 +93,10 @@ function isDebug() {
     return _rsSetup.debug;
 }
 
+function debugLog(message: string) {
+    if (isDebug()) _rsSetup.logger(message);
+}
+
 async function createRSocket(setup: RSocketSetup) {
     _rsSetup = setup;
     const options = {
@@ -125,21 +129,21 @@ async function createRSocket(setup: RSocketSetup) {
     };
 }
 
-function logConnectionStatus() {
+function debugLogConnectionStatus() {
     if (_rSocketConnectionStatus.isError())
-        console.log(
+        debugLog(
             `RSocket connection status: ${_rSocketConnectionStatus.getKind()} - ${
                 _rSocketConnectionStatus.error?.message
             }`
         );
-    else console.log(`RSocket connection status: ${_rSocketConnectionStatus.getKind()}`);
+    else debugLog(`RSocket connection status: ${_rSocketConnectionStatus.getKind()}`);
 }
 
 async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
     if (_rsConnection) throw new Error(`Already connected to: ${_rsSetup.url}`);
 
     try {
-        if (isDebug()) console.log(`Connecting to: ${_rsSetup.url}`);
+        debugLog(`Connecting to: ${_rsSetup.url}`);
         _rsConnection = await _rsClient.connect();
     } catch (e) {
         throw new Error("Unable to connect to RSocket server");
@@ -155,7 +159,7 @@ async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
             .connectionStatus()
             .subscribe((connectionStatus: ConnectionStatus) => {
                 _rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
-                if (isDebug()) logConnectionStatus();
+                debugLogConnectionStatus();
                 if (onConnectionStatusChange)
                     onConnectionStatusChange(_rSocketConnectionStatus);
 
@@ -200,7 +204,7 @@ async function requestStream(route: string, rsi: RequestStreamInformation) {
         throw new Error("Could not 'requestStream'. No RSocket connection found");
 
     if (notConnected()) {
-        console.debug(
+        debugLog(
             "Could not 'requestStream'. RSocket not connected - Try to connect now.."
         );
         stageRequestedStream(route, rsi);
@@ -210,7 +214,7 @@ async function requestStream(route: string, rsi: RequestStreamInformation) {
     if (invalidFunction(rsi.onMessage))
         throw new Error("Invalid parameter. 'onMessage' is not a function");
 
-    if (isDebug()) console.log(`requestStream on route: "${route}"`);
+    debugLog(`requestStream on route: "${route}"`);
 
     _rsConnection
         .requestStream({
@@ -219,7 +223,7 @@ async function requestStream(route: string, rsi: RequestStreamInformation) {
         })
         .subscribe({
             onComplete: () => {
-                if (isDebug()) console.log(`'requestStream' for : "${route}" completed`);
+                debugLog(`'requestStream' for : "${route}" completed`);
             },
             onError: (error) => {
                 console.log(`'requestStream' for : "${route}" error: ${error.message}`);
@@ -227,11 +231,10 @@ async function requestStream(route: string, rsi: RequestStreamInformation) {
             onNext: (messageData) => {
                 const message = new RSocketMessage(messageData);
 
-                if (isDebug()) {
-                    console.log(
-                        `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
-                    );
-                }
+                debugLog(
+                    `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
+                );
+
                 rsi.onMessage(message);
             },
             onSubscribe: (sub) => {
@@ -245,10 +248,9 @@ async function requestStream(route: string, rsi: RequestStreamInformation) {
 
                 const requestAmount = rsi.amount;
 
-                if (isDebug())
-                    console.log(
-                        `Add "${route}" to 'requestedStreams' - requesting next: ${requestAmount}`
-                    );
+                debugLog(
+                    `Add "${route}" to 'requestedStreams' - requesting next: ${requestAmount}`
+                );
                 _requestedStreams.set(route, sub);
                 sub.request(requestAmount);
             },
@@ -261,12 +263,11 @@ async function friendlyRequestStream(route: string, onMessage: OnMessage) {
 
 function cancelRequestStream(route) {
     if (!_requestedStreams.has(route)) {
-        if (isDebug()) console.log(`No subscription for route: "${route}"`);
+        debugLog(`No subscription for route: "${route}"`);
         return;
     }
 
-    if (isDebug())
-        console.log(`Canceling and removing 'requestedStream' for route: "${route}"`);
+    debugLog(`Canceling and removing 'requestedStream' for route: "${route}"`);
     _requestedStreams.get(route).cancel();
     _requestedStreams.delete(route);
 }

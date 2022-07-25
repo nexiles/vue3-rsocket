@@ -28,6 +28,6 @@ import Authentication from "../classes/Authentication";
  * Asynchronous function to use to retrieve an Authentication object
  * @see Authentication
  */
-type AuthFunction = () => Promise<Authentication<any>>;
+type AuthFunction = () => Promise<Authentication>;
 
 export default AuthFunction;
