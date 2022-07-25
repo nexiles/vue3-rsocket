@@ -33,8 +33,20 @@ import OnConnectionStatusChange from "../types/OnConnectionStatusChange";
  * Set fields like e.g.: new RSocketConfig({ url: "wss://localhost:7000" });
  */
 export default class RSocketConfig {
+    /**
+     * The URL the RSocket server is reachable on
+     */
     url: string;
+
+    /**
+     * The function to use to return an authentication object
+     * @see Authentication
+     */
     authFn: AuthFunction;
+
+    /**
+     * The function to call when the connection status changes
+     */
     connectionStatusFn: OnConnectionStatusChange;
 
     dataMimeType = APPLICATION_JSON.string;
@@ -42,10 +54,18 @@ export default class RSocketConfig {
     lifetime = 180000;
     metadataMimeType = MESSAGE_RSOCKET_COMPOSITE_METADATA.string;
 
-    payLoadData: string = undefined;
+    payLoadData: string;
 
+    /**
+     * Enable debug logging
+     */
     debug = false;
-    loggerFn: LoggerFunction = console.log;
+
+    /**
+     * Function to use for debug logging.
+     * Default to 'console.debug()'
+     */
+    loggerFn: LoggerFunction = console.debug;
 
     public constructor(init?: Partial<RSocketConfig>) {
         Object.assign(this, init);
