@@ -9,7 +9,19 @@
     "type": "git",
     "url": "git+https://github.com/nexiles/vue3-rsocket"
   },
-  "author": "Jakob Huber <jakob.huber@nexiles.com>",
+  "author": "nexiles GmbH",
+  "contributors": [
+    {
+      "name": "Jakob Huber",
+      "email": "jakob.huber@nexiles.com",
+      "url": "https://github.com/gh7531"
+    },
+    {
+      "name": "Samuel Frei",
+      "email": "samuel.frei@nexiles.com",
+      "url": "https://github.com/s-frei/"
+    }
+  ],
   "license": "MIT",
   "private": false,
   "scripts": {
