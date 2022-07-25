@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 nexiles GmbH
+ * Copyright (c) 2022 nexiles GmbH
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,40 @@
  * SOFTWARE.
  */
 
-export class User {
-  constructor(username, password) {
-    this.username = username;
-    this.password = password;
-  }
+import { ConnectionStatus } from "rsocket-types";
+
+/**
+ * Wrapper class to hold data received when an RSocket connection status changes.
+ */
+export default class RSocketConnectionStatus {
+    status: ConnectionStatus;
+    connected: boolean;
+    error: Error;
+
+    constructor(status: ConnectionStatus) {
+        this.status = status;
+        this.connected = status.kind === "CONNECTED";
+        this.error = status.kind === "ERROR" ? status.error : undefined;
+    }
+
+    /**
+     * Get ki
+     */
+    getKind(): string {
+        return this.status.kind;
+    }
+
+    /**
+     * True if an Error is available, false when not.
+     */
+    isError(): boolean {
+        return this.error !== undefined;
+    }
+
+    /**
+     * True if the RSocket connection is established.
+     */
+    isConnected(): boolean {
+        return this.connected;
+    }
 }

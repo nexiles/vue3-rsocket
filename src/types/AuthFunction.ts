@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 nexiles GmbH
+ * Copyright (c) 2022 nexiles GmbH
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,12 @@
  * SOFTWARE.
  */
 
-export const authentication = {
-  BASIC: "basic",
-  BEARER: "bearer",
-};
+import Authentication from "../classes/Authentication";
 
-export class Auth {
-  constructor(authType, value) {
-    this.authType = authType;
-    this.value = value;
-  }
-}
+/**
+ * Asynchronous function to use to retrieve an Authentication object
+ * @see Authentication
+ */
+type AuthFunction = () => Promise<Authentication>;
+
+export default AuthFunction;

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 nexiles GmbH
+ * Copyright (c) 2022 nexiles GmbH
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,32 @@
  * SOFTWARE.
  */
 
-import { createRSocket, useRSocket } from "./vue3-rsocket";
-import { Auth, authentication } from "./auth";
-import { User } from "./user";
+// noinspection JSUnusedGlobalSymbols
 
-export { createRSocket, useRSocket, Auth, authentication, User };
+/**
+ * Wrapper class to hold data received on an RSocket message
+ * with helper functions.
+ */
+export default class RSocketMessage<D, M> {
+    data: D;
+    metaData: M;
+
+    constructor(messageData) {
+        this.data = messageData.data;
+        this.metaData = messageData.metaData;
+    }
+
+    /**
+     * Return data as JSON when given.
+     */
+    getDataAsJson() {
+        return this.data ? JSON.parse(this.data.toString()) : undefined;
+    }
+
+    /**
+     * Return metaData as JSON when given.
+     */
+    getMetadataAsJson() {
+        return this.metaData ? JSON.parse(this.metaData.toString()) : undefined;
+    }
+}

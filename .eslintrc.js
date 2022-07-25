@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 nexiles GmbH
+ * Copyright (c) 2022 nexiles GmbH
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,29 @@
  */
 
 module.exports = {
-    "env": {
-        "browser": true,
-        "es2021": true
+    parser: "@typescript-eslint/parser",
+    plugins: ["@typescript-eslint"],
+    env: {
+        browser: true,
     },
     // Rules order is important, please avoid shuffling them
-    "extends": [
-        // Base ESLint recommended rules
-        'eslint:recommended',
-
-        // https://github.com/prettier/eslint-config-prettier#installation
-        // usage with Prettier, provided by 'eslint-config-prettier'.
-        "prettier",
-    ],
-    "parserOptions": {
-        "ecmaVersion": 12,
-        "sourceType": "module"
+    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+    settings: {
+        "import/resolver": {
+            node: {
+                paths: "src",
+                extensions: [".js", ".jsx", ".ts", ".tsx"],
+            },
+        },
     },
-    "rules": {
+    parserOptions: {
+        ecmaVersion: 12,
+        sourceType: "module",
+    },
+    rules: {
         "object-curly-spacing": ["error", "always"],
+        "no-undef": "warn",
+        "no-unused-vars": "warn",
+        "no-debugger": "warn",
     },
 };

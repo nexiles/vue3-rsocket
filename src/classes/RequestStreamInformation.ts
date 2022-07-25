@@ -22,41 +22,21 @@
  * SOFTWARE.
  */
 
-import esbuild from "rollup-plugin-esbuild";
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import dts from "rollup-plugin-dts";
+import OnMessage from "../types/OnMessage";
+import { JAVA_MAX_SAFE_INTEGER } from "../constants/MessageConstants";
 
-// Obtained and modified from: https://gist.github.com/aleclarson/9900ed2a9a3119d865286b218e14d226
+/**
+ * Wrapper class to set up stream request easily with appropriate defaults.
+ *
+ * Set fields like e.g.: new RequestStreamInformation({ amount: 10 });
+ */
+export default class RequestStreamInformation {
+    onMessage: OnMessage;
+    data: string;
+    metaData: unknown = {};
+    amount: number = JAVA_MAX_SAFE_INTEGER;
 
-const name = require("./package.json").main.replace(/\.js$/, "");
-
-const bundle = (config) => ({
-    ...config,
-    input: "src/index.ts",
-});
-
-export default [
-    bundle({
-        output: [
-            {
-                file: `${name}.js`,
-                format: "cjs",
-                sourcemap: true,
-            },
-            {
-                file: `${name}.mjs`,
-                format: "es",
-                sourcemap: true,
-            },
-        ],
-        plugins: [nodeResolve({ browser: true }), commonjs(), esbuild()],
-    }),
-    bundle({
-        plugins: [dts()],
-        output: {
-            file: `${name}.d.ts`,
-            format: "es",
-        },
-    }),
-];
+    constructor(init?: Partial<RequestStreamInformation>) {
+        Object.assign(this, init);
+    }
+}

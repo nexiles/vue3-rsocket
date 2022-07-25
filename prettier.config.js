@@ -22,41 +22,18 @@
  * SOFTWARE.
  */
 
-import esbuild from "rollup-plugin-esbuild";
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import dts from "rollup-plugin-dts";
-
-// Obtained and modified from: https://gist.github.com/aleclarson/9900ed2a9a3119d865286b218e14d226
-
-const name = require("./package.json").main.replace(/\.js$/, "");
-
-const bundle = (config) => ({
-    ...config,
-    input: "src/index.ts",
-});
-
-export default [
-    bundle({
-        output: [
-            {
-                file: `${name}.js`,
-                format: "cjs",
-                sourcemap: true,
-            },
-            {
-                file: `${name}.mjs`,
-                format: "es",
-                sourcemap: true,
-            },
-        ],
-        plugins: [nodeResolve({ browser: true }), commonjs(), esbuild()],
-    }),
-    bundle({
-        plugins: [dts()],
-        output: {
-            file: `${name}.d.ts`,
-            format: "es",
-        },
-    }),
-];
+// https://prettier.io/docs/en/options.html
+module.exports = {
+    printWidth: 90,
+    tabWidth: 4,
+    useTabs: false,
+    semi: true,
+    singleQuote: false,
+    quoteProps: "as-needed",
+    trailingComma: "es5",
+    bracketSpacing: true,
+    bracketSameLine: true,
+    arrowParens: "always",
+    htmlWhitespaceSensitivity: "ignore",
+    endOfLine: "lf",
+};

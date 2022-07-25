@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /*
  * MIT License
  *
@@ -22,41 +23,11 @@
  * SOFTWARE.
  */
 
-import esbuild from "rollup-plugin-esbuild";
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import dts from "rollup-plugin-dts";
+import RSocketConnectionStatus from "../classes/RSocketConnectionStatus";
 
-// Obtained and modified from: https://gist.github.com/aleclarson/9900ed2a9a3119d865286b218e14d226
+/**
+ * Function definition of function to be called when connection status changes.
+ */
+type OnConnectionStatusChange = (status: RSocketConnectionStatus) => void;
 
-const name = require("./package.json").main.replace(/\.js$/, "");
-
-const bundle = (config) => ({
-    ...config,
-    input: "src/index.ts",
-});
-
-export default [
-    bundle({
-        output: [
-            {
-                file: `${name}.js`,
-                format: "cjs",
-                sourcemap: true,
-            },
-            {
-                file: `${name}.mjs`,
-                format: "es",
-                sourcemap: true,
-            },
-        ],
-        plugins: [nodeResolve({ browser: true }), commonjs(), esbuild()],
-    }),
-    bundle({
-        plugins: [dts()],
-        output: {
-            file: `${name}.d.ts`,
-            format: "es",
-        },
-    }),
-];
+export default OnConnectionStatusChange;

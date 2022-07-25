@@ -22,41 +22,22 @@
  * SOFTWARE.
  */
 
-import esbuild from "rollup-plugin-esbuild";
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
-import dts from "rollup-plugin-dts";
+import RSocketConfig from "./classes/RSocketConfig";
+import Authentication from "./classes/Authentication";
+import { UserAuth, BearerAuth } from "./classes/Authentication";
+import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
+import RequestStreamInformation from "./classes/RequestStreamInformation";
+import RSocketMessage from "./classes/RSocketMessage";
+import Vue3RSocket from "./vue3-rsocket";
 
-// Obtained and modified from: https://gist.github.com/aleclarson/9900ed2a9a3119d865286b218e14d226
+export {
+    RSocketConfig,
+    Authentication,
+    UserAuth,
+    BearerAuth,
+    RSocketConnectionStatus,
+    RequestStreamInformation,
+    RSocketMessage,
+};
 
-const name = require("./package.json").main.replace(/\.js$/, "");
-
-const bundle = (config) => ({
-    ...config,
-    input: "src/index.ts",
-});
-
-export default [
-    bundle({
-        output: [
-            {
-                file: `${name}.js`,
-                format: "cjs",
-                sourcemap: true,
-            },
-            {
-                file: `${name}.mjs`,
-                format: "es",
-                sourcemap: true,
-            },
-        ],
-        plugins: [nodeResolve({ browser: true }), commonjs(), esbuild()],
-    }),
-    bundle({
-        plugins: [dts()],
-        output: {
-            file: `${name}.d.ts`,
-            format: "es",
-        },
-    }),
-];
+export default Vue3RSocket;
