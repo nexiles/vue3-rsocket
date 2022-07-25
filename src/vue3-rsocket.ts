@@ -46,240 +46,262 @@ import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
 
-let _rSocketConnectionStatus: RSocketConnectionStatus = undefined;
-let _rsSetup: RSocketSetup;
-let _rsClient: RSocketClient<string, Buffer>;
-let _rsConnection: ReactiveSocket<string, Buffer>;
+class Vue3Rsocket {
+    private rSocketConnectionStatus: RSocketConnectionStatus = undefined;
+    private rsSetup: RSocketSetup;
+    private rsClient: RSocketClient<string, Buffer>;
+    private rsConnection: ReactiveSocket<string, Buffer>;
 
-// eslint-disable-next-line no-unused-vars
-let _vueInstance;
+    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
+    private vueInstance;
 
-const _requestedStreams = new Map<string, ISubscription>();
-const _stagedRequestedStreams = new Map<string, RequestStreamInformation>();
+    private requestedStreams = new Map<string, ISubscription>();
+    private stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
-function _encodeMetaData(auth, route: string, customMetadata) {
-    const metadata = [];
+    public async install(Vue, rsSetup: RSocketSetup) {
+        this.rsSetup = rsSetup;
+        const rsocketClientOptions = {
+            setup: {
+                keepAlive: rsSetup.keepAlive,
+                lifetime: rsSetup.lifetime,
+                dataMimeType: rsSetup.dataMimeType,
+                metadataMimeType: rsSetup.metadataMimeType,
+                payload: {
+                    data: rsSetup.payLoadData,
+                    metadata: Vue3Rsocket.encodeMetaData(
+                        await rsSetup.auth(),
+                        undefined,
+                        undefined
+                    ),
+                },
+            },
+            transport: new RSocketWebSocketClient(
+                { url: rsSetup.url, debug: rsSetup.debug },
+                BufferEncoders
+            ),
+        };
 
-    if (auth) {
-        const authType = auth.authType;
+        this.vueInstance = Vue;
+        this.rsClient = new RSocketClient(rsocketClientOptions);
 
-        if (authType === AuthenticationType.BEARER) {
-            const bearerToken = auth.authData.value;
-            metadata.push([
-                MESSAGE_RSOCKET_AUTHENTICATION,
-                encodeBearerAuthMetadata(bearerToken),
-            ]);
-        } else if (authType === AuthenticationType.BASIC) {
-            const user = auth.authData;
-            metadata.push([
-                MESSAGE_RSOCKET_AUTHENTICATION,
-                encodeSimpleAuthMetadata(user.username, user.password),
-            ]);
+        Vue.$rs = this;
+
+        Vue.provide("vue3-rsocket", Vue.$rs);
+        Vue.provide("rs", Vue.$rs);
+        Vue.config.globalProperties.$rs = Vue.$rs;
+
+        Vue.config.globalProperties.$rs.requestedStreams = this.requestedStreams;
+
+        await this.connect(undefined);
+    }
+
+    private static encodeMetaData(auth, route: string, customMetadata) {
+        const metadata = [];
+
+        if (auth) {
+            const authType = auth.authType;
+
+            if (authType === AuthenticationType.BEARER) {
+                const bearerToken = auth.authData.value;
+                metadata.push([
+                    MESSAGE_RSOCKET_AUTHENTICATION,
+                    encodeBearerAuthMetadata(bearerToken),
+                ]);
+            } else if (authType === AuthenticationType.BASIC) {
+                const user = auth.authData;
+                metadata.push([
+                    MESSAGE_RSOCKET_AUTHENTICATION,
+                    encodeSimpleAuthMetadata(user.username, user.password),
+                ]);
+            }
         }
+
+        if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
+
+        if (customMetadata)
+            metadata.push([
+                APPLICATION_JSON,
+                Buffer.from(JsonSerializer.serialize(customMetadata)),
+            ]);
+
+        return encodeCompositeMetadata(metadata);
     }
 
-    if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
-
-    if (customMetadata)
-        metadata.push([
-            APPLICATION_JSON,
-            Buffer.from(JsonSerializer.serialize(customMetadata)),
-        ]);
-
-    return encodeCompositeMetadata(metadata);
-}
-
-function isDebug() {
-    return _rsSetup.debug;
-}
-
-function debugLog(message: string) {
-    if (isDebug()) _rsSetup.logger(message);
-}
-
-async function createRSocket(setup: RSocketSetup) {
-    _rsSetup = setup;
-    const options = {
-        setup: {
-            keepAlive: setup.keepAlive,
-            lifetime: setup.lifetime,
-            dataMimeType: setup.dataMimeType,
-            metadataMimeType: setup.metadataMimeType,
-            payload: {
-                data: setup.payLoadData,
-                metadata: await _encodeMetaData(await setup.auth(), undefined, undefined),
-            },
-        },
-        transport: new RSocketWebSocketClient(
-            { url: setup.url, debug: setup.debug },
-            BufferEncoders
-        ),
-    };
-
-    function install(app) {
-        app.config.globalProperties.$rs_requestedStreams = _requestedStreams;
-
-        _vueInstance = app;
-        _rsClient = new RSocketClient(options);
+    private isDebug() {
+        return this.rsSetup.debug;
     }
 
-    // noinspection JSUnusedGlobalSymbols
-    return {
-        install,
-    };
-}
-
-function debugLogConnectionStatus() {
-    if (_rSocketConnectionStatus.isError())
-        debugLog(
-            `RSocket connection status: ${_rSocketConnectionStatus.getKind()} - ${
-                _rSocketConnectionStatus.error?.message
-            }`
-        );
-    else debugLog(`RSocket connection status: ${_rSocketConnectionStatus.getKind()}`);
-}
-
-async function connect(onConnectionStatusChange: OnConnectionStatusChange) {
-    if (_rsConnection) throw new Error(`Already connected to: ${_rsSetup.url}`);
-
-    try {
-        debugLog(`Connecting to: ${_rsSetup.url}`);
-        _rsConnection = await _rsClient.connect();
-    } catch (e) {
-        throw new Error("Unable to connect to RSocket server");
+    private debugLog(message: string) {
+        if (this.isDebug()) this.rsSetup.logger(message);
     }
 
-    if (onConnectionStatusChange && !(typeof onConnectionStatusChange === "function"))
-        throw new Error(
-            "Invalid parameter. 'onConnectionStatusChange' is not a function"
-        );
-
-    try {
-        _rsConnection
-            .connectionStatus()
-            .subscribe((connectionStatus: ConnectionStatus) => {
-                _rSocketConnectionStatus = new RSocketConnectionStatus(connectionStatus);
-                debugLogConnectionStatus();
-                if (onConnectionStatusChange)
-                    onConnectionStatusChange(_rSocketConnectionStatus);
-
-                // Handle staged ones
-                handleStagedRequestedStreams();
-            });
-    } catch (e) {
-        throw new Error("Unable to subscribe to connectionStatus");
+    private debugLogConnectionStatus() {
+        if (this.rSocketConnectionStatus.isError())
+            this.debugLog(
+                `RSocket connection status: ${this.rSocketConnectionStatus.getKind()} - ${
+                    this.rSocketConnectionStatus.error?.message
+                }`
+            );
+        else
+            this.debugLog(
+                `RSocket connection status: ${this.rSocketConnectionStatus.getKind()}`
+            );
     }
 
-    return _rsConnection;
-}
-
-// eslint-disable-next-line no-unused-vars
-
-function noConnectionCreated(): boolean {
-    return !_rsConnection;
-}
-
-function notConnected(): boolean {
-    return !_rSocketConnectionStatus.isConnected();
-}
-
-function invalidFunction(fn): boolean {
-    return typeof fn !== "function";
-}
-
-function stageRequestedStream(route: string, rsi: RequestStreamInformation) {
-    _stagedRequestedStreams.set(route, rsi);
-}
-
-async function handleStagedRequestedStreams() {
-    _stagedRequestedStreams.forEach((value, key, map) => {
-        const route = key;
-        requestStream(route, value);
-        map.delete(route);
-    });
-}
-
-async function requestStream(route: string, rsi: RequestStreamInformation) {
-    if (noConnectionCreated())
-        throw new Error("Could not 'requestStream'. No RSocket connection found");
-
-    if (notConnected()) {
-        debugLog(
-            "Could not 'requestStream'. RSocket not connected - Try to connect now.."
-        );
-        stageRequestedStream(route, rsi);
-        await connect(undefined);
+    private noClientPresent(): boolean {
+        return !this.rsClient;
     }
 
-    if (invalidFunction(rsi.onMessage))
-        throw new Error("Invalid parameter. 'onMessage' is not a function");
+    private noConnectionCreated(): boolean {
+        return !this.rsConnection;
+    }
 
-    debugLog(`requestStream on route: "${route}"`);
+    private connected(): boolean {
+        return this.rSocketConnectionStatus && this.rSocketConnectionStatus.isConnected();
+    }
 
-    _rsConnection
-        .requestStream({
-            data: rsi.data,
-            metadata: await _encodeMetaData(await _rsSetup.auth(), route, rsi.metaData),
-        })
-        .subscribe({
-            onComplete: () => {
-                debugLog(`'requestStream' for : "${route}" completed`);
-            },
-            onError: (error) => {
-                console.log(`'requestStream' for : "${route}" error: ${error.message}`);
-            },
-            onNext: (messageData) => {
-                const message = new RSocketMessage(messageData);
+    private notConnected(): boolean {
+        return !this.connected();
+    }
 
-                debugLog(
-                    `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
-                );
+    private static invalidFunction(fn): boolean {
+        return fn && typeof fn !== "function";
+    }
 
-                rsi.onMessage(message);
-            },
-            onSubscribe: (sub) => {
-                if (_requestedStreams.has(route)) {
-                    console.warn(
-                        `Multiple 'requestedStreams' for route: "${route}", closing new subscription`
+    public async connect(onConnectionStatusChange: OnConnectionStatusChange) {
+        console.log(JSON.stringify(this.rsSetup));
+        console.log(this.rsClient);
+
+        if (this.noClientPresent()) throw new Error(`RSocket client not already created`);
+
+        if (this.connected()) {
+            this.debugLog(`Already connected to: ${this.rsSetup.url}`);
+            return;
+        }
+
+        try {
+            this.debugLog(`Connecting to: ${this.rsSetup.url}`);
+            this.rsConnection = await this.rsClient.connect();
+        } catch (e) {
+            throw new Error(`Unable to connect to RSocket server: ${this.rsSetup.url}`);
+        }
+
+        if (Vue3Rsocket.invalidFunction(onConnectionStatusChange))
+            throw new Error(
+                "Invalid parameter. 'onConnectionStatusChange' is not a function"
+            );
+
+        try {
+            this.rsConnection
+                .connectionStatus()
+                .subscribe((connectionStatus: ConnectionStatus) => {
+                    this.rSocketConnectionStatus = new RSocketConnectionStatus(
+                        connectionStatus
                     );
-                    sub.cancel();
-                    return;
-                }
+                    this.debugLogConnectionStatus();
+                    if (onConnectionStatusChange)
+                        onConnectionStatusChange(this.rSocketConnectionStatus);
 
-                const requestAmount = rsi.amount;
+                    // Handle staged ones
+                    this.handleStagedRequestedStreams();
+                });
+        } catch (e) {
+            throw new Error("Unable to subscribe to connectionStatus");
+        }
 
-                debugLog(
-                    `Add "${route}" to 'requestedStreams' - requesting next: ${requestAmount}`
-                );
-                _requestedStreams.set(route, sub);
-                sub.request(requestAmount);
-            },
-        });
-}
-
-async function friendlyRequestStream(route: string, onMessage: OnMessage) {
-    await requestStream(route, new RequestStreamInformation({ onMessage }));
-}
-
-function cancelRequestStream(route) {
-    if (!_requestedStreams.has(route)) {
-        debugLog(`No subscription for route: "${route}"`);
-        return;
+        return this.rsConnection;
     }
 
-    debugLog(`Canceling and removing 'requestedStream' for route: "${route}"`);
-    _requestedStreams.get(route).cancel();
-    _requestedStreams.delete(route);
+    private stageRequestedStream(route: string, rsi: RequestStreamInformation) {
+        this.stagedRequestedStreams.set(route, rsi);
+    }
+
+    private handleStagedRequestedStreams(): void {
+        this.stagedRequestedStreams.forEach((value, key, map) => {
+            const route = key;
+            this.requestStream(route, value);
+            map.delete(route);
+        });
+    }
+
+    public async requestStream(route: string, rsi: RequestStreamInformation) {
+        if (this.noConnectionCreated())
+            throw new Error("Could not 'requestStream'. No RSocket connection found");
+
+        if (this.notConnected()) {
+            this.debugLog(
+                "Could not 'requestStream'. RSocket not connected - Try to connect now.."
+            );
+            this.stageRequestedStream(route, rsi);
+            await this.connect(undefined);
+        }
+
+        if (Vue3Rsocket.invalidFunction(rsi.onMessage))
+            throw new Error("Invalid parameter. 'onMessage' is not a function");
+
+        this.debugLog(`requestStream on route: "${route}"`);
+
+        this.rsConnection
+            .requestStream({
+                data: rsi.data,
+                metadata: await Vue3Rsocket.encodeMetaData(
+                    await this.rsSetup.auth(),
+                    route,
+                    rsi.metaData
+                ),
+            })
+            .subscribe({
+                onComplete: () => {
+                    this.debugLog(`'requestStream' for : "${route}" completed`);
+                },
+                onError: (error) => {
+                    console.log(
+                        `'requestStream' for : "${route}" error: ${error.message}`
+                    );
+                },
+                onNext: (messageData) => {
+                    const message = new RSocketMessage(messageData);
+
+                    this.debugLog(
+                        `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
+                    );
+
+                    rsi.onMessage(message);
+                },
+                onSubscribe: (sub) => {
+                    if (this.requestedStreams.has(route)) {
+                        console.warn(
+                            `Multiple 'requestedStreams' for route: "${route}", closing new subscription`
+                        );
+                        sub.cancel();
+                        return;
+                    }
+
+                    const requestAmount = rsi.amount;
+
+                    this.debugLog(
+                        `Add "${route}" to 'requestedStreams' - requesting next: ${requestAmount}`
+                    );
+                    this.requestedStreams.set(route, sub);
+                    sub.request(requestAmount);
+                },
+            });
+    }
+
+    public async friendlyRequestStream(route: string, onMessage: OnMessage) {
+        await this.requestStream(route, new RequestStreamInformation({ onMessage }));
+    }
+
+    public cancelRequestStream(route) {
+        if (!this.requestedStreams.has(route)) {
+            this.debugLog(`No subscription for route: "${route}"`);
+            return;
+        }
+
+        this.debugLog(`Canceling and removing 'requestedStream' for route: "${route}"`);
+        this.requestedStreams.get(route).cancel();
+        this.requestedStreams.delete(route);
+    }
 }
 
-function useRSocket() {
-    // noinspection JSUnusedGlobalSymbols
-    return {
-        connect,
-        requestStream,
-        friendlyRequestStream,
-        cancelRequestStream,
-    };
-}
-
-export { createRSocket, useRSocket };
+export default new Vue3Rsocket();
