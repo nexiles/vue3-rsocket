@@ -22,19 +22,20 @@
  * SOFTWARE.
  */
 
-import Authentication from "./Authentication";
 import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-core";
 import AuthFunction from "../types/AuthFunction";
 import LoggerFunction from "../types/LoggerFunction";
+import OnConnectionStatusChange from "../types/OnConnectionStatusChange";
 
 /**
  * Create an RSocket setup object with common defaults.
  *
- * Set fields like e.g.: new RSocketSetup({ url: "wss://localhost:7000" });
+ * Set fields like e.g.: new RSocketConfig({ url: "wss://localhost:7000" });
  */
-export default class RSocketSetup {
-    url: string | undefined;
+export default class RSocketConfig {
+    url: string;
     authFn: AuthFunction;
+    connectionStatusFn: OnConnectionStatusChange;
 
     dataMimeType = APPLICATION_JSON.string;
     keepAlive = 10000;
@@ -44,9 +45,9 @@ export default class RSocketSetup {
     payLoadData: string = undefined;
 
     debug = false;
-    logger: LoggerFunction = console.log;
+    loggerFn: LoggerFunction = console.log;
 
-    public constructor(init?: Partial<RSocketSetup>) {
+    public constructor(init?: Partial<RSocketConfig>) {
         Object.assign(this, init);
     }
 

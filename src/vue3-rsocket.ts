@@ -38,7 +38,7 @@ import {
 import { ConnectionStatus, ReactiveSocket } from "rsocket-types";
 import { AuthenticationType } from "./classes/Authentication";
 import { Buffer } from "buffer";
-import RSocketSetup from "./classes/RSocketSetup";
+import RSocketConfig from "./classes/RSocketConfig";
 import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
 import RSocketMessage from "./classes/RSocketMessage";
 import RequestStreamInformation from "./classes/RequestStreamInformation";
@@ -47,41 +47,37 @@ import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
 
 class Vue3Rsocket {
-    private rSocketConnectionStatus: RSocketConnectionStatus = undefined;
-    private rsSetup: RSocketSetup;
+    private rsConnectionStatus: RSocketConnectionStatus = undefined;
+    private rsConfig: RSocketConfig;
     private rsClient: RSocketClient<string, Buffer>;
     private rsConnection: ReactiveSocket<string, Buffer>;
-
-    // eslint-disable-next-line no-unused-vars,@typescript-eslint/no-unused-vars
-    private vueInstance;
 
     private requestedStreams = new Map<string, ISubscription>();
     private stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
-    public async install(Vue, rsSetup: RSocketSetup) {
-        this.rsSetup = rsSetup;
+    public async install(Vue, rsConfig: RSocketConfig) {
+        this.rsConfig = rsConfig;
         const rsocketClientOptions = {
             setup: {
-                keepAlive: rsSetup.keepAlive,
-                lifetime: rsSetup.lifetime,
-                dataMimeType: rsSetup.dataMimeType,
-                metadataMimeType: rsSetup.metadataMimeType,
+                keepAlive: rsConfig.keepAlive,
+                lifetime: rsConfig.lifetime,
+                dataMimeType: rsConfig.dataMimeType,
+                metadataMimeType: rsConfig.metadataMimeType,
                 payload: {
-                    data: rsSetup.payLoadData,
+                    data: rsConfig.payLoadData,
                     metadata: Vue3Rsocket.encodeMetaData(
-                        await rsSetup.auth(),
+                        await rsConfig.auth(),
                         undefined,
                         undefined
                     ),
                 },
             },
             transport: new RSocketWebSocketClient(
-                { url: rsSetup.url, debug: rsSetup.debug },
+                { url: rsConfig.url, debug: rsConfig.debug },
                 BufferEncoders
             ),
         };
 
-        this.vueInstance = Vue;
         this.rsClient = new RSocketClient(rsocketClientOptions);
 
         Vue.$rs = this;
@@ -92,7 +88,7 @@ class Vue3Rsocket {
 
         Vue.config.globalProperties.$rs.requestedStreams = this.requestedStreams;
 
-        await this.connect(undefined);
+        await this.connect(rsConfig.connectionStatusFn);
     }
 
     private static encodeMetaData(auth, route: string, customMetadata) {
@@ -128,23 +124,23 @@ class Vue3Rsocket {
     }
 
     private isDebug() {
-        return this.rsSetup.debug;
+        return this.rsConfig.debug;
     }
 
     private debugLog(message: string) {
-        if (this.isDebug()) this.rsSetup.logger(message);
+        if (this.isDebug()) this.rsConfig.loggerFn(message);
     }
 
     private debugLogConnectionStatus() {
-        if (this.rSocketConnectionStatus.isError())
+        if (this.rsConnectionStatus.isError())
             this.debugLog(
-                `RSocket connection status: ${this.rSocketConnectionStatus.getKind()} - ${
-                    this.rSocketConnectionStatus.error?.message
+                `RSocket connection status: ${this.rsConnectionStatus.getKind()} - ${
+                    this.rsConnectionStatus.error?.message
                 }`
             );
         else
             this.debugLog(
-                `RSocket connection status: ${this.rSocketConnectionStatus.getKind()}`
+                `RSocket connection status: ${this.rsConnectionStatus.getKind()}`
             );
     }
 
@@ -157,7 +153,7 @@ class Vue3Rsocket {
     }
 
     private connected(): boolean {
-        return this.rSocketConnectionStatus && this.rSocketConnectionStatus.isConnected();
+        return this.rsConnectionStatus && this.rsConnectionStatus.isConnected();
     }
 
     private notConnected(): boolean {
@@ -169,21 +165,18 @@ class Vue3Rsocket {
     }
 
     public async connect(onConnectionStatusChange: OnConnectionStatusChange) {
-        console.log(JSON.stringify(this.rsSetup));
-        console.log(this.rsClient);
-
-        if (this.noClientPresent()) throw new Error(`RSocket client not already created`);
+        if (this.noClientPresent()) throw new Error(`RSocket client not created`);
 
         if (this.connected()) {
-            this.debugLog(`Already connected to: ${this.rsSetup.url}`);
+            this.debugLog(`Already connected to: ${this.rsConfig.url}`);
             return;
         }
 
         try {
-            this.debugLog(`Connecting to: ${this.rsSetup.url}`);
+            this.debugLog(`Connecting to: ${this.rsConfig.url}`);
             this.rsConnection = await this.rsClient.connect();
         } catch (e) {
-            throw new Error(`Unable to connect to RSocket server: ${this.rsSetup.url}`);
+            throw new Error(`Unable to connect to RSocket server: ${this.rsConfig.url}`);
         }
 
         if (Vue3Rsocket.invalidFunction(onConnectionStatusChange))
@@ -195,12 +188,12 @@ class Vue3Rsocket {
             this.rsConnection
                 .connectionStatus()
                 .subscribe((connectionStatus: ConnectionStatus) => {
-                    this.rSocketConnectionStatus = new RSocketConnectionStatus(
+                    this.rsConnectionStatus = new RSocketConnectionStatus(
                         connectionStatus
                     );
                     this.debugLogConnectionStatus();
                     if (onConnectionStatusChange)
-                        onConnectionStatusChange(this.rSocketConnectionStatus);
+                        onConnectionStatusChange(this.rsConnectionStatus);
 
                     // Handle staged ones
                     this.handleStagedRequestedStreams();
@@ -216,7 +209,7 @@ class Vue3Rsocket {
         this.stagedRequestedStreams.set(route, rsi);
     }
 
-    private handleStagedRequestedStreams(): void {
+    private async handleStagedRequestedStreams() {
         this.stagedRequestedStreams.forEach((value, key, map) => {
             const route = key;
             this.requestStream(route, value);
@@ -241,14 +234,18 @@ class Vue3Rsocket {
 
         this.debugLog(`requestStream on route: "${route}"`);
 
+        const encodedMetadata = await Vue3Rsocket.encodeMetaData(
+            await this.rsConfig.auth(),
+            route,
+            rsi.metaData
+        );
+
+        const onMessage = rsi.onMessage;
+
         this.rsConnection
             .requestStream({
                 data: rsi.data,
-                metadata: await Vue3Rsocket.encodeMetaData(
-                    await this.rsSetup.auth(),
-                    route,
-                    rsi.metaData
-                ),
+                metadata: encodedMetadata,
             })
             .subscribe({
                 onComplete: () => {
@@ -265,8 +262,7 @@ class Vue3Rsocket {
                     this.debugLog(
                         `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
                     );
-
-                    rsi.onMessage(message);
+                    if (onMessage) onMessage(message);
                 },
                 onSubscribe: (sub) => {
                     if (this.requestedStreams.has(route)) {

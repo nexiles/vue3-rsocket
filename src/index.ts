@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import RSocketSetup from "./classes/RSocketSetup";
+import RSocketConfig from "./classes/RSocketConfig";
 import Authentication from "./classes/Authentication";
 import { UserAuth, BearerAuth } from "./classes/Authentication";
 import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
@@ -30,7 +30,7 @@ import RSocketMessage from "./classes/RSocketMessage";
 import Vue3RSocket from "./vue3-rsocket";
 
 export {
-    RSocketSetup,
+    RSocketConfig,
     Authentication,
     UserAuth,
     BearerAuth,
