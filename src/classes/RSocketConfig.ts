@@ -26,6 +26,8 @@ import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-co
 import AuthFunction from "../types/AuthFunction";
 import LoggerFunction from "../types/LoggerFunction";
 import OnConnectionStatusChange from "../types/OnConnectionStatusChange";
+import Authentication from "./Authentication";
+import { FunctionHelper } from "../utils/Helpers";
 
 /**
  * Create an RSocket setup object with common defaults.
@@ -74,7 +76,37 @@ export default class RSocketConfig {
     /**
      * Get the asynchronous auth function
      */
-    auth(): AuthFunction {
-        return this.authFn;
+    auth(): Promise<Authentication> {
+        return this.authFn();
+    }
+
+    /**
+     * Validate provided information and throw Error when
+     * there are misconfiguration
+     */
+    validated(): RSocketConfig {
+        if (this.debug)
+            this.loggerFn(`Validating configuration: ${JSON.stringify(this, null, 2)}`);
+        if (!this.url) throw new Error("Provided 'url' is empty");
+        if (this.authFn && FunctionHelper.invalidAsyncFunction(this.authFn()))
+            throw new Error(
+                `Provided 'authFn' (${this.authFn}) is not an asynchronous function`
+            );
+        if (
+            this.connectionStatusFn &&
+            FunctionHelper.invalidFunction(this.connectionStatusFn)
+        )
+            throw new Error(
+                `Provided 'connectionStatusFn' (${this.connectionStatusFn}) is not a function`
+            );
+
+        return this;
+    }
+
+    /**
+     * Check if used data mimetype is JSON
+     */
+    dataIsJSON(): boolean {
+        return this.dataMimeType === APPLICATION_JSON.string;
     }
 }

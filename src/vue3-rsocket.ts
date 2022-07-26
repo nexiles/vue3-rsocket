@@ -45,6 +45,7 @@ import RequestStreamInformation from "./classes/RequestStreamInformation";
 import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
+import { FunctionHelper } from "./utils/Helpers";
 
 class Vue3Rsocket {
     private rsConnectionStatus: RSocketConnectionStatus = undefined;
@@ -56,7 +57,7 @@ class Vue3Rsocket {
     private stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
     public async install(Vue, rsConfig: RSocketConfig) {
-        this.rsConfig = rsConfig;
+        this.rsConfig = rsConfig.validated();
         const rsocketClientOptions = {
             setup: {
                 keepAlive: rsConfig.keepAlive,
@@ -65,7 +66,7 @@ class Vue3Rsocket {
                 metadataMimeType: rsConfig.metadataMimeType,
                 payload: {
                     data: rsConfig.payLoadData,
-                    metadata: Vue3Rsocket.encodeMetaData(
+                    metadata: this.encodeMetaData(
                         await rsConfig.auth(),
                         undefined,
                         undefined
@@ -87,14 +88,17 @@ class Vue3Rsocket {
 
         Vue.config.globalProperties.$rs.requestedStreams = this.requestedStreams;
 
+        this.debugLog("Installed 'vue3-rsocket' plugin");
+
         await this.connect(rsConfig.connectionStatusFn);
     }
 
-    private static encodeMetaData(auth, route: string, customMetadata) {
+    private encodeMetaData(auth, route: string, customMetadata) {
         const metadata = [];
 
         if (auth) {
             const authType = auth.authType;
+            this.debugLog(`Using 'authType': ${AuthenticationType[authType]}`);
 
             if (authType === AuthenticationType.BEARER) {
                 const bearerToken = auth.authData.value;
@@ -109,7 +113,7 @@ class Vue3Rsocket {
                     encodeSimpleAuthMetadata(user.username, user.password),
                 ]);
             }
-        }
+        } else this.debugLog("No 'auth' object provided");
 
         if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
 
@@ -159,10 +163,6 @@ class Vue3Rsocket {
         return !this.connected();
     }
 
-    private static invalidFunction(fn): boolean {
-        return fn && typeof fn !== "function";
-    }
-
     private async connect(onConnectionStatusChange: OnConnectionStatusChange) {
         if (this.noClientPresent()) throw new Error(`RSocket client not created`);
 
@@ -178,7 +178,7 @@ class Vue3Rsocket {
             throw new Error(`Unable to connect to RSocket server: ${this.rsConfig.url}`);
         }
 
-        if (Vue3Rsocket.invalidFunction(onConnectionStatusChange))
+        if (FunctionHelper.invalidFunction(onConnectionStatusChange))
             throw new Error(
                 "Invalid parameter. 'onConnectionStatusChange' is not a function"
             );
@@ -216,6 +216,19 @@ class Vue3Rsocket {
         });
     }
 
+    private debugLogReceivedMessage(
+        route: string,
+        message: RSocketMessage<unknown, unknown>
+    ) {
+        this.debugLog(
+            `Received message on route "${route}" metadata: ${message.metaData} data: ${
+                this.rsConfig.dataIsJSON()
+                    ? JSON.stringify(message.getDataAsJson(), null, 2)
+                    : message.data
+            }`
+        );
+    }
+
     public async requestStream(route: string, rsi: RequestStreamInformation) {
         if (this.noConnectionCreated())
             throw new Error("Could not 'requestStream'. No RSocket connection found");
@@ -228,12 +241,12 @@ class Vue3Rsocket {
             await this.connect(undefined);
         }
 
-        if (Vue3Rsocket.invalidFunction(rsi.onMessage))
+        if (FunctionHelper.invalidFunction(rsi.onMessage))
             throw new Error("Invalid parameter. 'onMessage' is not a function");
 
         this.debugLog(`requestStream on route: "${route}"`);
 
-        const encodedMetadata = await Vue3Rsocket.encodeMetaData(
+        const encodedMetadata = this.encodeMetaData(
             await this.rsConfig.auth(),
             route,
             rsi.metaData
@@ -251,16 +264,13 @@ class Vue3Rsocket {
                     this.debugLog(`'requestStream' for : "${route}" completed`);
                 },
                 onError: (error) => {
-                    console.log(
+                    console.error(
                         `'requestStream' for : "${route}" error: ${error.message}`
                     );
                 },
                 onNext: (messageData) => {
                     const message = new RSocketMessage(messageData);
-
-                    this.debugLog(
-                        `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
-                    );
+                    this.debugLogReceivedMessage(route, message);
                     if (onMessage) onMessage(message);
                 },
                 onSubscribe: (sub) => {

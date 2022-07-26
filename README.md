@@ -115,6 +115,29 @@ export default {
 };
 </script>
 ```
+
+## Development
+
+We currently use *Yarn v1* for this project (v1 to not break dependency updated provided by dependabot).
+
+To build the project hit:
+
+```shell
+yarn && yarn build
+```
+
+all generated filed will then be located in `dist/`.
+
+---
+
+To build when something in `src/` changed, use:
+
+```shell
+yarn watch
+```
+
+and to test it in your desired project hit `yarn link {{absolute-path-to}}/vue3-rsocket`.
+
 ## Next up
 
 - [x] Add dependabot

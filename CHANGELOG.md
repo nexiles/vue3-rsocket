@@ -1,8 +1,10 @@
 # CHANGELOG
 
-## 0.2.1 -- unreleased
+## 0.2.1 -- 2022-07-26
 
-No changes yet
+- feat: increase debug verbosity
+- feat: validate provided config
+- fix: auth function asynchronicity
 
 ## 0.2.0 -- 2022-07-25
 
