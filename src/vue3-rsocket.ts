@@ -65,7 +65,7 @@ class Vue3Rsocket {
                 metadataMimeType: rsConfig.metadataMimeType,
                 payload: {
                     data: rsConfig.payLoadData,
-                    metadata: Vue3Rsocket.encodeMetaData(
+                    metadata: this.encodeMetaData(
                         await rsConfig.auth(),
                         undefined,
                         undefined
@@ -90,7 +90,7 @@ class Vue3Rsocket {
         await this.connect(rsConfig.connectionStatusFn);
     }
 
-    private static encodeMetaData(auth, route: string, customMetadata) {
+    private encodeMetaData(auth, route: string, customMetadata) {
         const metadata = [];
 
         if (auth) {
@@ -233,7 +233,7 @@ class Vue3Rsocket {
 
         this.debugLog(`requestStream on route: "${route}"`);
 
-        const encodedMetadata = await Vue3Rsocket.encodeMetaData(
+        const encodedMetadata = this.encodeMetaData(
             await this.rsConfig.auth(),
             route,
             rsi.metaData

@@ -26,6 +26,7 @@ import { APPLICATION_JSON, MESSAGE_RSOCKET_COMPOSITE_METADATA } from "rsocket-co
 import AuthFunction from "../types/AuthFunction";
 import LoggerFunction from "../types/LoggerFunction";
 import OnConnectionStatusChange from "../types/OnConnectionStatusChange";
+import Authentication from "./Authentication";
 
 /**
  * Create an RSocket setup object with common defaults.
@@ -74,7 +75,7 @@ export default class RSocketConfig {
     /**
      * Get the asynchronous auth function
      */
-    auth(): AuthFunction {
-        return this.authFn;
+    auth(): Promise<Authentication> {
+        return this.authFn();
     }
 }

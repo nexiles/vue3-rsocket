@@ -2,7 +2,7 @@
 
 ## 0.2.1 -- unreleased
 
-No changes yet
+- fix: auth function asynchronicity
 
 ## 0.2.0 -- 2022-07-25
 
