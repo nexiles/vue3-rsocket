@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 0.2.1 -- unreleased
+## 0.2.1 -- 2022-07-26
 
 - feat: increase debug verbosity
 - feat: validate provided config
