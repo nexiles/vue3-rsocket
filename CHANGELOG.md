@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.3 -- unreleased
+
+No changes yet
+
 ## 0.2.2 -- 2022-07-26
 
 - fix: validation of asynchronous function
