@@ -27,6 +27,7 @@ import AuthFunction from "../types/AuthFunction";
 import LoggerFunction from "../types/LoggerFunction";
 import OnConnectionStatusChange from "../types/OnConnectionStatusChange";
 import Authentication from "./Authentication";
+import { FunctionHelper } from "../utils/Helpers";
 
 /**
  * Create an RSocket setup object with common defaults.
@@ -87,11 +88,14 @@ export default class RSocketConfig {
         if (this.debug)
             this.loggerFn(`Validating configuration: ${JSON.stringify(this, null, 2)}`);
         if (!this.url) throw new Error("Provided 'url' is empty");
-        if (this.authFn && this.authFn.constructor.name !== "AsyncFunction")
+        if (this.authFn && FunctionHelper.invalidAsyncFunction(this.authFn()))
             throw new Error(
                 `Provided 'authFn' (${this.authFn}) is not an asynchronous function`
             );
-        if (this.connectionStatusFn && typeof this.connectionStatusFn !== "function")
+        if (
+            this.connectionStatusFn &&
+            FunctionHelper.invalidFunction(this.connectionStatusFn)
+        )
             throw new Error(
                 `Provided 'connectionStatusFn' (${this.connectionStatusFn}) is not a function`
             );

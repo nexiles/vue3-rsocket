@@ -45,6 +45,7 @@ import RequestStreamInformation from "./classes/RequestStreamInformation";
 import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
+import { FunctionHelper } from "./utils/Helpers";
 
 class Vue3Rsocket {
     private rsConnectionStatus: RSocketConnectionStatus = undefined;
@@ -162,10 +163,6 @@ class Vue3Rsocket {
         return !this.connected();
     }
 
-    private static invalidFunction(fn): boolean {
-        return fn && typeof fn !== "function";
-    }
-
     private async connect(onConnectionStatusChange: OnConnectionStatusChange) {
         if (this.noClientPresent()) throw new Error(`RSocket client not created`);
 
@@ -181,7 +178,7 @@ class Vue3Rsocket {
             throw new Error(`Unable to connect to RSocket server: ${this.rsConfig.url}`);
         }
 
-        if (Vue3Rsocket.invalidFunction(onConnectionStatusChange))
+        if (FunctionHelper.invalidFunction(onConnectionStatusChange))
             throw new Error(
                 "Invalid parameter. 'onConnectionStatusChange' is not a function"
             );
@@ -244,7 +241,7 @@ class Vue3Rsocket {
             await this.connect(undefined);
         }
 
-        if (Vue3Rsocket.invalidFunction(rsi.onMessage))
+        if (FunctionHelper.invalidFunction(rsi.onMessage))
             throw new Error("Invalid parameter. 'onMessage' is not a function");
 
         this.debugLog(`requestStream on route: "${route}"`);
