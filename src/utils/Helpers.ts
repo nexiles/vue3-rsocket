@@ -32,7 +32,7 @@ export class FunctionHelper {
     }
 
     public static validAsyncFunction(fn): boolean {
-        return fn && fn.constructor.name !== "AsyncFunction";
+        return fn && fn.constructor.name === "AsyncFunction";
     }
 
     public static invalidAsyncFunction(fn): boolean {

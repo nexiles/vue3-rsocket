@@ -88,7 +88,7 @@ export default class RSocketConfig {
         if (this.debug)
             this.loggerFn(`Validating configuration: ${JSON.stringify(this, null, 2)}`);
         if (!this.url) throw new Error("Provided 'url' is empty");
-        if (this.authFn && FunctionHelper.invalidAsyncFunction(this.authFn()))
+        if (this.authFn && FunctionHelper.invalidAsyncFunction(this.authFn))
             throw new Error(
                 `Provided 'authFn' (${this.authFn}) is not an asynchronous function`
             );
