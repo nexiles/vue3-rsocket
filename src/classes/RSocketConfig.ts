@@ -98,4 +98,11 @@ export default class RSocketConfig {
 
         return this;
     }
+
+    /**
+     * Check if used data mimetype is JSON
+     */
+    dataIsJSON(): boolean {
+        return this.dataMimeType === APPLICATION_JSON.string;
+    }
 }

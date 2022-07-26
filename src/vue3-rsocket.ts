@@ -87,6 +87,8 @@ class Vue3Rsocket {
 
         Vue.config.globalProperties.$rs.requestedStreams = this.requestedStreams;
 
+        this.debugLog("Installed 'vue3-rsocket' plugin");
+
         await this.connect(rsConfig.connectionStatusFn);
     }
 
@@ -95,6 +97,7 @@ class Vue3Rsocket {
 
         if (auth) {
             const authType = auth.authType;
+            this.debugLog(`Using 'authType': ${AuthenticationType[authType]}`);
 
             if (authType === AuthenticationType.BEARER) {
                 const bearerToken = auth.authData.value;
@@ -109,7 +112,7 @@ class Vue3Rsocket {
                     encodeSimpleAuthMetadata(user.username, user.password),
                 ]);
             }
-        }
+        } else this.debugLog("No 'auth' object provided");
 
         if (route) metadata.push([MESSAGE_RSOCKET_ROUTING, encodeRoute(route)]);
 
@@ -216,6 +219,19 @@ class Vue3Rsocket {
         });
     }
 
+    private debugLogReceivedMessage(
+        route: string,
+        message: RSocketMessage<unknown, unknown>
+    ) {
+        this.debugLog(
+            `Received message on route "${route}" metadata: ${message.metaData} data: ${
+                this.rsConfig.dataIsJSON()
+                    ? JSON.stringify(message.getDataAsJson(), null, 2)
+                    : message.data
+            }`
+        );
+    }
+
     public async requestStream(route: string, rsi: RequestStreamInformation) {
         if (this.noConnectionCreated())
             throw new Error("Could not 'requestStream'. No RSocket connection found");
@@ -251,16 +267,13 @@ class Vue3Rsocket {
                     this.debugLog(`'requestStream' for : "${route}" completed`);
                 },
                 onError: (error) => {
-                    console.log(
+                    console.error(
                         `'requestStream' for : "${route}" error: ${error.message}`
                     );
                 },
                 onNext: (messageData) => {
                     const message = new RSocketMessage(messageData);
-
-                    this.debugLog(
-                        `Received message on route "${route}" data: ${message.data} metadata: ${message.metaData}`
-                    );
+                    this.debugLogReceivedMessage(route, message);
                     if (onMessage) onMessage(message);
                 },
                 onSubscribe: (sub) => {

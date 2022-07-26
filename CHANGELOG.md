@@ -2,6 +2,7 @@
 
 ## 0.2.1 -- unreleased
 
+- feat: increase debug verbosity
 - feat: validate provided config
 - fix: auth function asynchronicity
 
