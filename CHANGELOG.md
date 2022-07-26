@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.2.2 -- unreleased
+
+No changes yet
+
 ## 0.2.1 -- 2022-07-26
 
 - feat: increase debug verbosity
