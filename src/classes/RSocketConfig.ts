@@ -78,4 +78,24 @@ export default class RSocketConfig {
     auth(): Promise<Authentication> {
         return this.authFn();
     }
+
+    /**
+     * Validate provided information and throw Error when
+     * there are misconfiguration
+     */
+    validated(): RSocketConfig {
+        if (this.debug)
+            this.loggerFn(`Validating configuration: ${JSON.stringify(this, null, 2)}`);
+        if (!this.url) throw new Error("Provided 'url' is empty");
+        if (this.authFn && this.authFn.constructor.name !== "AsyncFunction")
+            throw new Error(
+                `Provided 'authFn' (${this.authFn}) is not an asynchronous function`
+            );
+        if (this.connectionStatusFn && typeof this.connectionStatusFn !== "function")
+            throw new Error(
+                `Provided 'connectionStatusFn' (${this.connectionStatusFn}) is not a function`
+            );
+
+        return this;
+    }
 }

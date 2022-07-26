@@ -56,7 +56,7 @@ class Vue3Rsocket {
     private stagedRequestedStreams = new Map<string, RequestStreamInformation>();
 
     public async install(Vue, rsConfig: RSocketConfig) {
-        this.rsConfig = rsConfig;
+        this.rsConfig = rsConfig.validated();
         const rsocketClientOptions = {
             setup: {
                 keepAlive: rsConfig.keepAlive,
