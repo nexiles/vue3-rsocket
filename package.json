@@ -42,7 +42,6 @@
     "dist"
   ],
   "dependencies": {
-    "rsocket-core": "^0.0.27",
     "rsocket-websocket-client": "^0.0.27",
     "vue": "^3.0.0"
   },
