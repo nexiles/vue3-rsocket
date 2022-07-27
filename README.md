@@ -50,8 +50,7 @@ For all possible configuration values have look at `src/classes/RSocketConfig.ts
 
 ```javascript
 import { boot } from "quasar/wrappers";
-import { BearerAuth, RSocketConfig } from "vue3-rsocket";
-import Vue3RSocket from "vue3-rsocket";
+import { Vue3RSocket, BearerAuth, RSocketConfig } from "vue3-rsocket";
 
 export default boot(async ({ app }) => {
 
@@ -69,8 +68,7 @@ export default boot(async ({ app }) => {
 
 ```javascript
 import { boot } from "quasar/wrappers";
-import { UserAuth, RSocketConfig } from "vue3-rsocket";
-import Vue3RSocket from "vue3-rsocket";
+import { Vue3RSocket, UserAuth, RSocketConfig } from "vue3-rsocket";
 
 export default boot(async ({ app }) => {
 
