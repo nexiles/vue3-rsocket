@@ -133,7 +133,7 @@ all generated filed will then be located in `dist/`.
 To build when something in `src/` changed, use:
 
 ```shell
-yarn watch
+yarn dev
 ```
 
 and to test it in your desired project hit `yarn link {{absolute-path-to}}/vue3-rsocket`.
