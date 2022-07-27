@@ -1,8 +1,16 @@
 # CHANGELOG
 
-## 0.2.3 -- unreleased
+## 0.3.0 -- 2022-07-27
 
-No changes yet
+### :warning: Usage updated
+1. `Vue3RSocket` is now a named export
+2. `friendlyRequestStream` replaced through `requestStream` with optionals
+
+- build: do not wrap everything in generated js
+- build: create minified js upon production build
+- feat: `requestStream` now takes optional parameters
+- fix: correctly handle when route is/was already subscribed
+- build: clean up dependencies
 
 ## 0.2.2 -- 2022-07-26
 
