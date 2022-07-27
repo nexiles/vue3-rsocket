@@ -93,11 +93,11 @@ export default {
   setup() {
     const rs = inject("vue3-rsocket");
 
-    // Simple 'requestStream' function
-    rs.friendlyRequestStream("route", (data) => console.log(data));
+    rs.requestStream("route", (data) => console.log(data));
 
     rs.requestStream(
       "routeWithMetadata",
+      (data) => console.log(data),
       new RequestStreamInformation({
         data: "Hey",
         metaData: { requester: "Fred Flintstone" },

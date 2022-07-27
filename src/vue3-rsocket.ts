@@ -43,7 +43,10 @@ import { Buffer } from "buffer";
 import RSocketConfig from "./classes/RSocketConfig";
 import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
 import RSocketMessage from "./classes/RSocketMessage";
-import RequestStreamInformation from "./classes/RequestStreamInformation";
+import {
+    RequestStreamInformation,
+    StagedRequestStreamInformation,
+} from "./classes/RequestStreamInformation";
 import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
@@ -56,7 +59,7 @@ class Vue3Rsocket {
     private rsConnection: ReactiveSocket<string, Buffer>;
 
     private requestedStreams = new Map<string, ISubscription>();
-    private stagedRequestedStreams = new Map<string, RequestStreamInformation>();
+    private stagedRequestedStreams = new Map<string, StagedRequestStreamInformation>();
 
     public async install(Vue, rsConfig: RSocketConfig) {
         this.rsConfig = rsConfig.validated();
@@ -206,14 +209,15 @@ class Vue3Rsocket {
         return this.rsConnection;
     }
 
-    private stageRequestedStream(route: string, rsi: RequestStreamInformation) {
+    private stageRequestedStream(route: string, rsi: StagedRequestStreamInformation) {
         this.stagedRequestedStreams.set(route, rsi);
     }
 
     private async handleStagedRequestedStreams() {
         this.stagedRequestedStreams.forEach((value, key, map) => {
             const route = key;
-            this.requestStream(route, value);
+            const srsi = value;
+            this.requestStream(route, srsi.onMessage, srsi as RequestStreamInformation);
             map.delete(route);
         });
     }
@@ -231,20 +235,30 @@ class Vue3Rsocket {
         );
     }
 
-    public async requestStream(route: string, rsi: RequestStreamInformation) {
+    public async requestStream(
+        route: string,
+        onMessage: OnMessage,
+        requestStreamInformation?: RequestStreamInformation
+    ) {
         if (this.noConnectionCreated())
             throw new Error("Could not 'requestStream'. No RSocket connection found");
+
+        if (FunctionHelper.invalidFunction(onMessage))
+            throw new Error("Invalid parameter. 'onMessage' is not a function");
+
+        const rsi = requestStreamInformation
+            ? requestStreamInformation
+            : new RequestStreamInformation();
 
         if (this.notConnected()) {
             this.debugLog(
                 "Could not 'requestStream'. RSocket not connected - Try to connect now.."
             );
-            this.stageRequestedStream(route, rsi);
+            const srsi = rsi as StagedRequestStreamInformation;
+            srsi.onMessage = onMessage;
+            this.stageRequestedStream(route, srsi);
             await this.connect(undefined);
         }
-
-        if (FunctionHelper.invalidFunction(rsi.onMessage))
-            throw new Error("Invalid parameter. 'onMessage' is not a function");
 
         this.debugLog(`requestStream on route: "${route}"`);
 
@@ -253,8 +267,6 @@ class Vue3Rsocket {
             route,
             rsi.metaData
         );
-
-        const onMessage = rsi.onMessage;
 
         this.rsConnection
             .requestStream({
@@ -293,10 +305,6 @@ class Vue3Rsocket {
                     sub.request(requestAmount);
                 },
             });
-    }
-
-    public async friendlyRequestStream(route: string, onMessage: OnMessage) {
-        await this.requestStream(route, new RequestStreamInformation({ onMessage }));
     }
 
     public cancelRequestStream(route) {
