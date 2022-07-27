@@ -42,8 +42,7 @@
     "dist"
   ],
   "dependencies": {
-    "rsocket-websocket-client": "^0.0.27",
-    "vue": "^3.0.0"
+    "rsocket-websocket-client": "^0.0.27"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.1",
