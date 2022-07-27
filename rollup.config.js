@@ -1,3 +1,6 @@
+/* eslint-disable */
+// noinspection JSUnusedGlobalSymbols
+
 /*
  * MIT License
  *
@@ -22,41 +25,39 @@
  * SOFTWARE.
  */
 
-import esbuild from "rollup-plugin-esbuild";
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
 import dts from "rollup-plugin-dts";
+import typescript from "@rollup/plugin-typescript";
+import { terser } from "rollup-plugin-terser";
 
-// Obtained and modified from: https://gist.github.com/aleclarson/9900ed2a9a3119d865286b218e14d226
+const input = "src/index.ts";
+const outDir = `dist/`;
+const name = require("./package.json").name;
 
-const name = require("./package.json").main.replace(/\.js$/, "");
+export default (args) => {
+    const dev = !!args.dev;
+    console.log("Development build: %s", dev);
+    delete args.dev;
 
-const bundle = (config) => ({
-    ...config,
-    input: "src/index.ts",
-});
-
-export default [
-    bundle({
-        output: [
-            {
-                file: `${name}.js`,
-                format: "cjs",
-                sourcemap: true,
-            },
-            {
-                file: `${name}.mjs`,
-                format: "es",
-                sourcemap: true,
-            },
-        ],
-        plugins: [nodeResolve({ browser: true }), commonjs(), esbuild()],
-    }),
-    bundle({
-        plugins: [dts()],
-        output: {
-            file: `${name}.d.ts`,
-            format: "es",
+    return [
+        {
+            input: input,
+            output: [
+                {
+                    file: `${outDir}${name}.js`,
+                    format: "esm",
+                    sourcemap: dev,
+                },
+            ],
+            plugins: [typescript(), dev ? null : terser()],
+            external: ["vue", "rsocket-core", "rsocket-websocket-client", "buffer"],
         },
-    }),
-];
+        {
+            input: input,
+            plugins: [dts()],
+            output: {
+                file: `${outDir}${name}.d.ts`,
+                format: "esm",
+            },
+        },
+    ];
+};
