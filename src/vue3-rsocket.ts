@@ -290,10 +290,9 @@ class Vue3Rsocket {
                 onSubscribe: (sub) => {
                     if (this.requestedStreams.has(route)) {
                         console.warn(
-                            `Multiple 'requestedStreams' for route: "${route}", closing new subscription`
+                            `Multiple 'requestedStreams' for route: "${route}", closing existing subscription`
                         );
-                        sub.cancel();
-                        return;
+                        this.cancelAndRemoveRequestedStream(route);
                     }
 
                     const requestAmount = rsi.amount;
@@ -307,15 +306,19 @@ class Vue3Rsocket {
             });
     }
 
-    public cancelRequestStream(route) {
+    private cancelAndRemoveRequestedStream(route: string) {
+        this.requestedStreams.get(route).cancel();
+        this.requestedStreams.delete(route);
+    }
+
+    public cancelRequestStream(route: string) {
         if (!this.requestedStreams.has(route)) {
             this.debugLog(`No subscription for route: "${route}"`);
             return;
         }
 
         this.debugLog(`Canceling and removing 'requestedStream' for route: "${route}"`);
-        this.requestedStreams.get(route).cancel();
-        this.requestedStreams.delete(route);
+        this.cancelAndRemoveRequestedStream(route);
     }
 }
 
