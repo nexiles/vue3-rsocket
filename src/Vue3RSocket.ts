@@ -51,8 +51,9 @@ import { ISubscription } from "rsocket-types/ReactiveStreamTypes";
 import OnMessage from "./types/OnMessage";
 import OnConnectionStatusChange from "./types/OnConnectionStatusChange";
 import { FunctionHelper } from "./utils/Helpers";
+import IVue3RSocket from "./IVue3RSocket";
 
-class Vue3Rsocket {
+class Vue3RSocket implements IVue3RSocket {
     private rsConnectionStatus: RSocketConnectionStatus = undefined;
     private rsConfig: RSocketConfig;
     private rsClient: RSocketClient<string, Buffer>;
@@ -61,7 +62,7 @@ class Vue3Rsocket {
     private requestedStreams = new Map<string, ISubscription>();
     private stagedRequestedStreams = new Map<string, StagedRequestStreamInformation>();
 
-    public async install(Vue, rsConfig: RSocketConfig) {
+    async install(Vue, rsConfig: RSocketConfig) {
         this.rsConfig = rsConfig.validated();
         const rsocketClientOptions = {
             setup: {
@@ -235,7 +236,7 @@ class Vue3Rsocket {
         );
     }
 
-    public async requestStream(
+    async requestStream(
         route: string,
         onMessage: OnMessage,
         requestStreamInformation?: RequestStreamInformation
@@ -311,7 +312,7 @@ class Vue3Rsocket {
         this.requestedStreams.delete(route);
     }
 
-    public cancelRequestStream(route: string) {
+    cancelRequestStream(route: string) {
         if (!this.requestedStreams.has(route)) {
             this.debugLog(`No subscription for route: "${route}"`);
             return;
@@ -322,4 +323,4 @@ class Vue3Rsocket {
     }
 }
 
-export default new Vue3Rsocket();
+export default new Vue3RSocket() as IVue3RSocket;

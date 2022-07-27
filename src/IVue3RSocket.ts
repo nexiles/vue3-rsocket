@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*
  * MIT License
  *
@@ -22,21 +23,40 @@
  * SOFTWARE.
  */
 
-import Vue3RSocket from "./Vue3RSocket";
 import RSocketConfig from "./classes/RSocketConfig";
-import Authentication from "./classes/Authentication";
-import { UserAuth, BearerAuth } from "./classes/Authentication";
-import RSocketConnectionStatus from "./classes/RSocketConnectionStatus";
+import OnMessage from "./types/OnMessage";
 import { RequestStreamInformation } from "./classes/RequestStreamInformation";
-import RSocketMessage from "./classes/RSocketMessage";
 
-export {
-    Vue3RSocket,
-    RSocketConfig,
-    Authentication,
-    UserAuth,
-    BearerAuth,
-    RSocketConnectionStatus,
-    RequestStreamInformation,
-    RSocketMessage,
-};
+export default interface IVue3RSocket {
+    /**
+     * Install RSocket plugin on existing Vue instance.
+     *
+     * Then available via:
+     * ```ts
+     * import { inject } from "vue";
+     * const rs = inject("vue3-rsocket");
+     * ```
+     * @param Vue the existing vue instance to install this plugin on.
+     * @param rsConfig the RSocket setup configuration.
+     */
+    install(Vue, rsConfig: RSocketConfig): Promise<void>;
+
+    /**
+     * RSocket requestStream operation.
+     * @link https://rsocket.io/about/protocol#stream-sequences-request-stream
+     * @param route the route to request the stream on.
+     * @param onMessage the function to call when a message was received.
+     * @param requestStreamInformation optional data to set up request.
+     */
+    requestStream(
+        route: string,
+        onMessage: OnMessage,
+        requestStreamInformation?: RequestStreamInformation
+    ): Promise<void>;
+
+    /**
+     * Cancel a requested stream for given route.
+     * @param route the route to cancel an already requested stream for.
+     */
+    cancelRequestStream(route: string): void;
+}
