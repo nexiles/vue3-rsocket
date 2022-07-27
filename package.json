@@ -47,6 +47,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^22.0.1",
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-typescript": "^8.3.3",
     "@types/node": "^18.0.6",
     "@types/rsocket-core": "^0.0.7",
     "@types/rsocket-websocket-client": "^0.0.4",
