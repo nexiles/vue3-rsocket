@@ -3,8 +3,7 @@
   "version": "0.2.3",
   "description": "Vue3 library for rsocket-js https://github.com/rsocket/rsocket-js",
   "main": "dist/vue3-rsocket.js",
-  "module": "dist/vue3-rsocket.mjs",
-  "typings": "dist/vue3-rsocket.ts",
+  "typings": "dist/vue3-rsocket.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nexiles/vue3-rsocket"
@@ -39,21 +38,17 @@
     "rsocket-websocket-client": "^0.0.27"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.1",
-    "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-typescript": "^8.3.3",
     "@types/node": "^18.0.6",
     "@types/rsocket-core": "^0.0.7",
     "@types/rsocket-websocket-client": "^0.0.4",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
-    "esbuild": "^0.14.49",
     "eslint": "^8.20.0",
     "eslint-config-prettier": "^8.5.0",
     "prettier": "2.7.1",
     "rollup": "^2.77.0",
     "rollup-plugin-dts": "^4.2.2",
-    "rollup-plugin-esbuild": "^4.9.1",
     "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.7.4"
   }
