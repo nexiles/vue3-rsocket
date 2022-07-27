@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.1 -- unreleased
+
+No changes yet...
+
 ## 0.3.0 -- 2022-07-27
 
 ### :warning: Usage updated
